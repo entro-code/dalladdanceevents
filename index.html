@@ -15,9 +15,6 @@
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     
-    <!-- Lucide React Icons -->
-    <script src="https://unpkg.com/lucide-react@0.263.1/dist/umd/lucide-react.js"></script>
-    
     <style>
         /* Fallback styles in case Tailwind doesn't load */
         .loading-fallback {
@@ -51,15 +48,163 @@
         try {
             const { useState } = React;
             
-            // Check if lucideReact is available
-            if (typeof lucideReact === 'undefined') {
-                throw new Error('Lucide React icons failed to load');
-            }
-            
-            const { 
-                Calendar, MapPin, Clock, User, Mail, Repeat, Shield, 
-                Check, X, MessageSquare, Eye, Settings, UserPlus, Trash2, Send 
-            } = lucideReact;
+            // Define inline SVG icons to replace Lucide React
+            const Icons = {
+                Calendar: ({ className }) => React.createElement('svg', { 
+                    className, 
+                    fill: "none", 
+                    stroke: "currentColor", 
+                    viewBox: "0 0 24 24" 
+                },
+                    React.createElement('rect', { x: "3", y: "4", width: "18", height: "18", rx: "2", ry: "2" }),
+                    React.createElement('line', { x1: "16", y1: "2", x2: "16", y2: "6" }),
+                    React.createElement('line', { x1: "8", y1: "2", x2: "8", y2: "6" }),
+                    React.createElement('line', { x1: "3", y1: "10", x2: "21", y2: "10" })
+                ),
+                
+                MapPin: ({ className }) => React.createElement('svg', { 
+                    className, 
+                    fill: "none", 
+                    stroke: "currentColor", 
+                    viewBox: "0 0 24 24" 
+                },
+                    React.createElement('path', { d: "M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" }),
+                    React.createElement('circle', { cx: "12", cy: "10", r: "3" })
+                ),
+                
+                Clock: ({ className }) => React.createElement('svg', { 
+                    className, 
+                    fill: "none", 
+                    stroke: "currentColor", 
+                    viewBox: "0 0 24 24" 
+                },
+                    React.createElement('circle', { cx: "12", cy: "12", r: "10" }),
+                    React.createElement('polyline', { points: "12,6 12,12 16,14" })
+                ),
+                
+                User: ({ className }) => React.createElement('svg', { 
+                    className, 
+                    fill: "none", 
+                    stroke: "currentColor", 
+                    viewBox: "0 0 24 24" 
+                },
+                    React.createElement('path', { d: "M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" }),
+                    React.createElement('circle', { cx: "12", cy: "7", r: "4" })
+                ),
+                
+                Mail: ({ className }) => React.createElement('svg', { 
+                    className, 
+                    fill: "none", 
+                    stroke: "currentColor", 
+                    viewBox: "0 0 24 24" 
+                },
+                    React.createElement('path', { d: "M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" }),
+                    React.createElement('polyline', { points: "22,6 12,13 2,6" })
+                ),
+                
+                Repeat: ({ className }) => React.createElement('svg', { 
+                    className, 
+                    fill: "none", 
+                    stroke: "currentColor", 
+                    viewBox: "0 0 24 24" 
+                },
+                    React.createElement('polyline', { points: "17,1 21,5 17,9" }),
+                    React.createElement('path', { d: "M3 11V9a4 4 0 0 1 4-4h14" }),
+                    React.createElement('polyline', { points: "7,23 3,19 7,15" }),
+                    React.createElement('path', { d: "M21 13v2a4 4 0 0 1-4 4H3" })
+                ),
+                
+                Shield: ({ className }) => React.createElement('svg', { 
+                    className, 
+                    fill: "none", 
+                    stroke: "currentColor", 
+                    viewBox: "0 0 24 24" 
+                },
+                    React.createElement('path', { d: "M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" })
+                ),
+                
+                Check: ({ className }) => React.createElement('svg', { 
+                    className, 
+                    fill: "none", 
+                    stroke: "currentColor", 
+                    viewBox: "0 0 24 24" 
+                },
+                    React.createElement('polyline', { points: "20,6 9,17 4,12" })
+                ),
+                
+                X: ({ className }) => React.createElement('svg', { 
+                    className, 
+                    fill: "none", 
+                    stroke: "currentColor", 
+                    viewBox: "0 0 24 24" 
+                },
+                    React.createElement('line', { x1: "18", y1: "6", x2: "6", y2: "18" }),
+                    React.createElement('line', { x1: "6", y1: "6", x2: "18", y2: "18" })
+                ),
+                
+                MessageSquare: ({ className }) => React.createElement('svg', { 
+                    className, 
+                    fill: "none", 
+                    stroke: "currentColor", 
+                    viewBox: "0 0 24 24" 
+                },
+                    React.createElement('path', { d: "M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" })
+                ),
+                
+                Eye: ({ className }) => React.createElement('svg', { 
+                    className, 
+                    fill: "none", 
+                    stroke: "currentColor", 
+                    viewBox: "0 0 24 24" 
+                },
+                    React.createElement('path', { d: "M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" }),
+                    React.createElement('circle', { cx: "12", cy: "12", r: "3" })
+                ),
+                
+                Settings: ({ className }) => React.createElement('svg', { 
+                    className, 
+                    fill: "none", 
+                    stroke: "currentColor", 
+                    viewBox: "0 0 24 24" 
+                },
+                    React.createElement('circle', { cx: "12", cy: "12", r: "3" }),
+                    React.createElement('path', { d: "M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1 1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z" })
+                ),
+                
+                UserPlus: ({ className }) => React.createElement('svg', { 
+                    className, 
+                    fill: "none", 
+                    stroke: "currentColor", 
+                    viewBox: "0 0 24 24" 
+                },
+                    React.createElement('path', { d: "M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" }),
+                    React.createElement('circle', { cx: "8.5", cy: "7", r: "4" }),
+                    React.createElement('line', { x1: "20", y1: "8", x2: "20", y2: "14" }),
+                    React.createElement('line', { x1: "23", y1: "11", x2: "17", y2: "11" })
+                ),
+                
+                Trash2: ({ className }) => React.createElement('svg', { 
+                    className, 
+                    fill: "none", 
+                    stroke: "currentColor", 
+                    viewBox: "0 0 24 24" 
+                },
+                    React.createElement('polyline', { points: "3,6 5,6 21,6" }),
+                    React.createElement('path', { d: "M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" }),
+                    React.createElement('line', { x1: "10", y1: "11", x2: "10", y2: "17" }),
+                    React.createElement('line', { x1: "14", y1: "11", x2: "14", y2: "17" })
+                ),
+                
+                Send: ({ className }) => React.createElement('svg', { 
+                    className, 
+                    fill: "none", 
+                    stroke: "currentColor", 
+                    viewBox: "0 0 24 24" 
+                },
+                    React.createElement('line', { x1: "22", y1: "2", x2: "11", y2: "13" }),
+                    React.createElement('polygon', { points: "22,2 15,22 11,13 2,9 22,2" })
+                )
+            };
 
             const EventCalendarLanding = () => {
                 const [formData, setFormData] = useState({
@@ -169,28 +314,6 @@
                     alert('Event submitted for approval!');
                 };
 
-                const openCommentModal = (eventId, action) => {
-                    setShowCommentModal({ eventId, action });
-                };
-
-                const submitAdminAction = async () => {
-                    const { eventId, action } = showCommentModal;
-                    const comment = adminComments[eventId] || '';
-                    
-                    if (action === 'approve') {
-                        await handleApprove(eventId, comment);
-                    } else if (action === 'reject') {
-                        if (!comment.trim()) {
-                            alert('Please provide a reason for rejection');
-                            return;
-                        }
-                        await handleReject(eventId, comment);
-                    }
-                    
-                    setShowCommentModal(null);
-                    setAdminComments(prev => ({ ...prev, [eventId]: '' }));
-                };
-
                 const formatDate = (dateString) => {
                     return new Date(dateString).toLocaleDateString('en-US', {
                         weekday: 'long',
@@ -206,165 +329,6 @@
                         minute: '2-digit',
                         hour12: true
                     });
-                };
-
-                const createEmailTemplate = (type, data) => {
-                    const templates = {
-                        eventApproved: {
-                            subject: `✅ Your event "${data.eventName}" has been approved!`,
-                            body: `Dear ${data.organizerName},\n\nYour event has been approved!\n\nEvent: ${data.eventName}\nLocation: ${data.location}\nDate: ${formatDate(data.date)}\nTime: ${formatTime(data.time)}\n\nBest regards,\nDallas Dance Events Team`,
-                            type: 'approval'
-                        },
-                        eventRejected: {
-                            subject: `❌ Your event "${data.eventName}" needs revision`,
-                            body: `Dear ${data.organizerName},\n\nYour event submission needs revision.\n\nReason: ${data.adminComment}\n\nBest regards,\nDallas Dance Events Team`,
-                            type: 'rejection'
-                        },
-                        adminInvitation: {
-                            subject: `🔑 You've been invited as an admin for Dallas Dance Events`,
-                            body: `Dear ${data.name},\n\nYou've been invited as an admin.\n\nRole: ${data.role}\n\nBest regards,\nDallas Dance Events Team`,
-                            type: 'invitation'
-                        }
-                    };
-                    
-                    return templates[type];
-                };
-
-                const sendEmail = async (emailData) => {
-                    const emailRecord = {
-                        id: Date.now(),
-                        to: emailData.to,
-                        subject: emailData.subject,
-                        body: emailData.body,
-                        type: emailData.type,
-                        sentAt: new Date().toISOString(),
-                        status: 'sent'
-                    };
-                    
-                    setEmailHistory(prev => [emailRecord, ...prev]);
-                    console.log('📧 Email sent:', emailRecord);
-                    
-                    await new Promise(resolve => setTimeout(resolve, 500));
-                    return emailRecord;
-                };
-
-                const sendEventApprovalEmail = async (event, comment = '') => {
-                    const emailTemplate = createEmailTemplate('eventApproved', {
-                        ...event,
-                        adminComment: comment
-                    });
-                    
-                    return await sendEmail({
-                        to: event.organizerEmail,
-                        subject: emailTemplate.subject,
-                        body: emailTemplate.body,
-                        type: emailTemplate.type
-                    });
-                };
-
-                const sendEventRejectionEmail = async (event, comment) => {
-                    const emailTemplate = createEmailTemplate('eventRejected', {
-                        ...event,
-                        adminComment: comment
-                    });
-                    
-                    return await sendEmail({
-                        to: event.organizerEmail,
-                        subject: emailTemplate.subject,
-                        body: emailTemplate.body,
-                        type: emailTemplate.type
-                    });
-                };
-
-                const sendAdminInvitationEmail = async (adminUser) => {
-                    const emailTemplate = createEmailTemplate('adminInvitation', adminUser);
-                    
-                    return await sendEmail({
-                        to: adminUser.email,
-                        subject: emailTemplate.subject,
-                        body: emailTemplate.body,
-                        type: emailTemplate.type
-                    });
-                };
-
-                const handleApprove = async (eventId, comment = '') => {
-                    const event = pendingEvents.find(e => e.id === eventId);
-                    if (event) {
-                        setPendingEvents(prev => prev.filter(e => e.id !== eventId));
-                        const approvedEvent = { ...event, status: 'approved', adminComment: comment };
-                        setApprovedEvents(prev => [...prev, approvedEvent]);
-                        
-                        try {
-                            await sendEventApprovalEmail(event, comment);
-                            alert(`Event approved! Confirmation email sent to ${event.organizerEmail}`);
-                        } catch (error) {
-                            console.error('Failed to send approval email:', error);
-                            alert('Event approved, but email notification failed to send.');
-                        }
-                    }
-                };
-
-                const handleReject = async (eventId, comment) => {
-                    const event = pendingEvents.find(e => e.id === eventId);
-                    if (event) {
-                        setPendingEvents(prev => prev.filter(e => e.id !== eventId));
-                        const rejectedEvent = { ...event, status: 'rejected', adminComment: comment };
-                        setRejectedEvents(prev => [...prev, rejectedEvent]);
-                        
-                        try {
-                            await sendEventRejectionEmail(event, comment);
-                            alert(`Event rejected. Notification email sent to ${event.organizerEmail}`);
-                        } catch (error) {
-                            console.error('Failed to send rejection email:', error);
-                            alert('Event rejected, but email notification failed to send.');
-                        }
-                    }
-                };
-
-                const addAdminUser = async () => {
-                    if (!newAdminEmail.trim() || !newAdminName.trim()) {
-                        alert('Please fill in both email and name fields');
-                        return;
-                    }
-                    
-                    if (adminUsers.some(admin => admin.email.toLowerCase() === newAdminEmail.toLowerCase())) {
-                        alert('This email is already an admin user');
-                        return;
-                    }
-
-                    const newAdmin = {
-                        id: Date.now(),
-                        email: newAdminEmail.trim(),
-                        name: newAdminName.trim(),
-                        role: newAdminRole,
-                        addedDate: new Date().toISOString().split('T')[0]
-                    };
-
-                    setAdminUsers(prev => [...prev, newAdmin]);
-                    setNewAdminEmail('');
-                    setNewAdminName('');
-                    setNewAdminRole('Admin');
-                    
-                    try {
-                        await sendAdminInvitationEmail(newAdmin);
-                        alert(`${newAdmin.name} has been added as an admin user and invitation email sent!`);
-                    } catch (error) {
-                        console.error('Failed to send invitation email:', error);
-                        alert(`${newAdmin.name} has been added as an admin user, but invitation email failed to send.`);
-                    }
-                };
-
-                const removeAdminUser = (userId) => {
-                    const user = adminUsers.find(admin => admin.id === userId);
-                    if (user && user.role === 'Super Admin') {
-                        alert('Cannot remove Super Admin user');
-                        return;
-                    }
-                    
-                    if (confirm(`Are you sure you want to remove ${user.name} from admin access?`)) {
-                        setAdminUsers(prev => prev.filter(admin => admin.id !== userId));
-                        console.log('Admin user removed:', user);
-                    }
                 };
 
                 const handleAdminLogin = () => {
@@ -479,22 +443,13 @@
                     setCurrentMonth(new Date());
                 };
 
-                const removeApprovedEvent = (eventId) => {
-                    const event = approvedEvents.find(e => e.id === eventId);
-                    if (event && confirm(`Are you sure you want to remove "${event.eventName}" from the calendar?`)) {
-                        setApprovedEvents(prev => prev.filter(e => e.id !== eventId));
-                        console.log('Event removed from calendar:', event);
-                        alert('Event successfully removed from calendar');
-                    }
-                };
-
                 return React.createElement('div', { className: "min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50" },
                     // Header
                     React.createElement('header', { className: "bg-white/80 backdrop-blur-md border-b border-gray-200 sticky top-0 z-10" },
                         React.createElement('div', { className: "max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4" },
                             React.createElement('div', { className: "flex items-center justify-between" },
                                 React.createElement('div', { className: "flex items-center space-x-3" },
-                                    React.createElement(Calendar, { className: "h-8 w-8 text-blue-600" }),
+                                    React.createElement(Icons.Calendar, { className: "h-8 w-8 text-blue-600" }),
                                     React.createElement('h1', { className: "text-2xl font-bold text-gray-900" }, "Dallas Dance Events")
                                 ),
                                 React.createElement('div', { className: "flex items-center space-x-4" },
@@ -513,7 +468,7 @@
                                                 : 'bg-blue-100 text-blue-700 hover:bg-blue-200'
                                         }`
                                     },
-                                        React.createElement(Shield, { className: "h-4 w-4" }),
+                                        React.createElement(Icons.Shield, { className: "h-4 w-4" }),
                                         React.createElement('span', null, currentView === 'public' ? 'Admin Dashboard' : 'Exit Admin')
                                     ),
                                     
@@ -529,7 +484,7 @@
                                             onClick: () => setShowAdminLogin(true),
                                             className: "text-sm text-gray-600 hover:text-blue-600 transition-colors flex items-center space-x-1"
                                         },
-                                            React.createElement(Shield, { className: "h-4 w-4" }),
+                                            React.createElement(Icons.Shield, { className: "h-4 w-4" }),
                                             React.createElement('span', null, "Admin Login")
                                         )
                                 )
@@ -690,7 +645,7 @@
                                             // Event Name
                                             React.createElement('div', null,
                                                 React.createElement('label', { htmlFor: "eventName", className: "flex items-center text-sm font-medium text-gray-700 mb-2" },
-                                                    React.createElement(Calendar, { className: "h-4 w-4 mr-2 text-blue-600" }),
+                                                    React.createElement(Icons.Calendar, { className: "h-4 w-4 mr-2 text-blue-600" }),
                                                     "Event Name"
                                                 ),
                                                 React.createElement('input', {
@@ -708,7 +663,7 @@
                                             // Location
                                             React.createElement('div', null,
                                                 React.createElement('label', { htmlFor: "location", className: "flex items-center text-sm font-medium text-gray-700 mb-2" },
-                                                    React.createElement(MapPin, { className: "h-4 w-4 mr-2 text-blue-600" }),
+                                                    React.createElement(Icons.MapPin, { className: "h-4 w-4 mr-2 text-blue-600" }),
                                                     "Location"
                                                 ),
                                                 React.createElement('input', {
@@ -727,7 +682,7 @@
                                             React.createElement('div', { className: "grid grid-cols-1 md:grid-cols-2 gap-6" },
                                                 React.createElement('div', null,
                                                     React.createElement('label', { htmlFor: "date", className: "flex items-center text-sm font-medium text-gray-700 mb-2" },
-                                                        React.createElement(Calendar, { className: "h-4 w-4 mr-2 text-blue-600" }),
+                                                        React.createElement(Icons.Calendar, { className: "h-4 w-4 mr-2 text-blue-600" }),
                                                         "Date"
                                                     ),
                                                     React.createElement('input', {
@@ -743,7 +698,7 @@
 
                                                 React.createElement('div', null,
                                                     React.createElement('label', { htmlFor: "time", className: "flex items-center text-sm font-medium text-gray-700 mb-2" },
-                                                        React.createElement(Clock, { className: "h-4 w-4 mr-2 text-blue-600" }),
+                                                        React.createElement(Icons.Clock, { className: "h-4 w-4 mr-2 text-blue-600" }),
                                                         "Time"
                                                     ),
                                                     React.createElement('input', {
@@ -758,11 +713,97 @@
                                                 )
                                             ),
 
+                                            // Frequency
+                                            React.createElement('div', null,
+                                                React.createElement('label', { htmlFor: "frequency", className: "flex items-center text-sm font-medium text-gray-700 mb-2" },
+                                                    React.createElement(Icons.Repeat, { className: "h-4 w-4 mr-2 text-blue-600" }),
+                                                    "Event Frequency"
+                                                ),
+                                                React.createElement('select', {
+                                                    id: "frequency",
+                                                    name: "frequency",
+                                                    value: formData.frequency,
+                                                    onChange: handleInputChange,
+                                                    className: "w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+                                                },
+                                                    React.createElement('option', { value: "one-time" }, "One-time event"),
+                                                    React.createElement('option', { value: "daily" }, "Daily"),
+                                                    React.createElement('option', { value: "weekly" }, "Weekly"),
+                                                    React.createElement('option', { value: "monthly" }, "Monthly"),
+                                                    React.createElement('option', { value: "yearly" }, "Yearly")
+                                                )
+                                            ),
+
+                                            // Organizer Name
+                                            React.createElement('div', null,
+                                                React.createElement('label', { htmlFor: "organizerName", className: "flex items-center text-sm font-medium text-gray-700 mb-2" },
+                                                    React.createElement(Icons.User, { className: "h-4 w-4 mr-2 text-blue-600" }),
+                                                    "Organizer Name"
+                                                ),
+                                                React.createElement('input', {
+                                                    type: "text",
+                                                    id: "organizerName",
+                                                    name: "organizerName",
+                                                    value: formData.organizerName,
+                                                    onChange: handleInputChange,
+                                                    required: true,
+                                                    className: "w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200",
+                                                    placeholder: "Your name"
+                                                })
+                                            ),
+
+                                            // Organizer Email
+                                            React.createElement('div', null,
+                                                React.createElement('label', { htmlFor: "organizerEmail", className: "flex items-center text-sm font-medium text-gray-700 mb-2" },
+                                                    React.createElement(Icons.Mail, { className: "h-4 w-4 mr-2 text-blue-600" }),
+                                                    "Contact Email"
+                                                ),
+                                                React.createElement('input', {
+                                                    type: "email",
+                                                    id: "organizerEmail",
+                                                    name: "organizerEmail",
+                                                    value: formData.organizerEmail,
+                                                    onChange: handleInputChange,
+                                                    required: true,
+                                                    className: "w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200",
+                                                    placeholder: "your.email@example.com"
+                                                }),
+                                                React.createElement('p', { className: "text-sm text-gray-500 mt-1" },
+                                                    "Your email will only be visible to admins and used for approval notifications"
+                                                )
+                                            ),
+
+                                            // Social Media Account
+                                            React.createElement('div', null,
+                                                React.createElement('label', { htmlFor: "socialMediaAccount", className: "flex items-center text-sm font-medium text-gray-700 mb-2" },
+                                                    React.createElement(Icons.MessageSquare, { className: "h-4 w-4 mr-2 text-blue-600" }),
+                                                    "Social Media Account"
+                                                ),
+                                                React.createElement('input', {
+                                                    type: "text",
+                                                    id: "socialMediaAccount",
+                                                    name: "socialMediaAccount",
+                                                    value: formData.socialMediaAccount,
+                                                    onChange: handleInputChange,
+                                                    className: "w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200",
+                                                    placeholder: "@yourusername or social media link"
+                                                }),
+                                                React.createElement('p', { className: "text-sm text-gray-500 mt-1" },
+                                                    "Optional: Your social media handle or link for event updates"
+                                                )
+                                            ),
+
                                             // Submit Button
                                             React.createElement('button', {
                                                 onClick: handleSubmit,
                                                 className: "w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white py-3 px-6 rounded-lg font-medium hover:from-blue-700 hover:to-purple-700 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
                                             }, "Submit Event for Approval")
+                                        )
+                                    ),
+
+                                    React.createElement('div', { className: "mt-8 text-center" },
+                                        React.createElement('p', { className: "text-sm text-gray-500" },
+                                            "All dance events are reviewed by our admin team before being published to the calendar. You'll receive an email notification about the approval status."
                                         )
                                     )
                                 )
@@ -785,7 +826,7 @@
                     React.createElement('footer', { className: "bg-gray-900 text-white py-12 px-4 sm:px-6 lg:px-8" },
                         React.createElement('div', { className: "max-w-4xl mx-auto text-center" },
                             React.createElement('div', { className: "flex items-center justify-center space-x-3 mb-4" },
-                                React.createElement(Calendar, { className: "h-6 w-6" }),
+                                React.createElement(Icons.Calendar, { className: "h-6 w-6" }),
                                 React.createElement('span', { className: "text-xl font-semibold" }, "Dallas Dance Events")
                             ),
                             React.createElement('p', { className: "text-gray-400" },
@@ -804,7 +845,7 @@
                                         onClick: () => setSelectedEvent(null),
                                         className: "text-gray-400 hover:text-gray-600 transition-colors"
                                     },
-                                        React.createElement(X, { className: "h-5 w-5" })
+                                        React.createElement(Icons.X, { className: "h-5 w-5" })
                                     )
                                 )
                             ),
@@ -812,7 +853,7 @@
                             React.createElement('div', { className: "p-6" },
                                 React.createElement('div', { className: "space-y-4" },
                                     React.createElement('div', { className: "flex items-start space-x-3" },
-                                        React.createElement(MapPin, { className: "h-5 w-5 text-gray-400 mt-0.5" }),
+                                        React.createElement(Icons.MapPin, { className: "h-5 w-5 text-gray-400 mt-0.5" }),
                                         React.createElement('div', null,
                                             React.createElement('p', { className: "text-sm font-medium text-gray-900" }, "Location"),
                                             React.createElement('p', { className: "text-sm text-gray-600" }, selectedEvent.location)
@@ -820,7 +861,7 @@
                                     ),
                                     
                                     React.createElement('div', { className: "flex items-start space-x-3" },
-                                        React.createElement(Calendar, { className: "h-5 w-5 text-gray-400 mt-0.5" }),
+                                        React.createElement(Icons.Calendar, { className: "h-5 w-5 text-gray-400 mt-0.5" }),
                                         React.createElement('div', null,
                                             React.createElement('p', { className: "text-sm font-medium text-gray-900" }, "Date & Time"),
                                             React.createElement('p', { className: "text-sm text-gray-600" },
@@ -830,7 +871,15 @@
                                     ),
                                     
                                     React.createElement('div', { className: "flex items-start space-x-3" },
-                                        React.createElement(User, { className: "h-5 w-5 text-gray-400 mt-0.5" }),
+                                        React.createElement(Icons.Repeat, { className: "h-5 w-5 text-gray-400 mt-0.5" }),
+                                        React.createElement('div', null,
+                                            React.createElement('p', { className: "text-sm font-medium text-gray-900" }, "Frequency"),
+                                            React.createElement('p', { className: "text-sm text-gray-600 capitalize" }, selectedEvent.frequency)
+                                        )
+                                    ),
+                                    
+                                    React.createElement('div', { className: "flex items-start space-x-3" },
+                                        React.createElement(Icons.User, { className: "h-5 w-5 text-gray-400 mt-0.5" }),
                                         React.createElement('div', null,
                                             React.createElement('p', { className: "text-sm font-medium text-gray-900" }, "Organizer"),
                                             React.createElement('p', { className: "text-sm text-gray-600" }, selectedEvent.organizerName)
@@ -838,7 +887,7 @@
                                     ),
                                     
                                     selectedEvent.socialMediaAccount && React.createElement('div', { className: "flex items-start space-x-3" },
-                                        React.createElement(MessageSquare, { className: "h-5 w-5 text-gray-400 mt-0.5" }),
+                                        React.createElement(Icons.MessageSquare, { className: "h-5 w-5 text-gray-400 mt-0.5" }),
                                         React.createElement('div', null,
                                             React.createElement('p', { className: "text-sm font-medium text-gray-900" }, "Event Updates"),
                                             React.createElement('p', { className: "text-sm text-gray-600" },
@@ -872,7 +921,7 @@
                     showAdminLogin && React.createElement('div', { className: "fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4" },
                         React.createElement('div', { className: "bg-white rounded-lg max-w-md w-full p-6" },
                             React.createElement('h3', { className: "text-lg font-semibold mb-4 flex items-center" },
-                                React.createElement(Shield, { className: "h-5 w-5 mr-2 text-blue-600" }),
+                                React.createElement(Icons.Shield, { className: "h-5 w-5 mr-2 text-blue-600" }),
                                 "Admin Login"
                             ),
                             

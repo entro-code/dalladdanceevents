@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dallas Dance Events</title>
     
-    <!-- React and ReactDOM - Production builds -->
+    <!-- React and ReactDOM -->
     <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
     <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
     
@@ -17,1738 +17,760 @@
             margin: 0;
             font-family: system-ui, -apple-system, sans-serif;
         }
-        .loading {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            background: linear-gradient(135deg, #dbeafe 0%, #ffffff 50%, #faf5ff 100%);
-        }
-        .error {
-            color: #ef4444;
-            padding: 20px;
-            text-align: center;
-            background: white;
-            margin: 20px;
-            border-radius: 8px;
-            border: 1px solid #fecaca;
-        }
     </style>
 </head>
 <body>
-    <div id="root">
-        <div class="loading">
-            <div style="text-align: center;">
-                <div style="font-size: 24px; margin-bottom: 10px;">🕺💃</div>
-                <div>Loading Dallas Dance Events...</div>
-            </div>
-        </div>
-    </div>
+    <div id="root"></div>
 
     <script>
-        (function() {
-            'use strict';
-            
-            try {
-                if (typeof React === 'undefined' || typeof ReactDOM === 'undefined') {
-                    throw new Error('React libraries failed to load');
+        const { useState } = React;
+        const { createRoot } = ReactDOM;
+
+        // Simple SVG Icons
+        const Calendar = ({ className }) => React.createElement('svg', { 
+            className, fill: "none", stroke: "currentColor", viewBox: "0 0 24 24", strokeWidth: "2"
+        },
+            React.createElement('rect', { x: "3", y: "4", width: "18", height: "18", rx: "2", ry: "2" }),
+            React.createElement('line', { x1: "16", y1: "2", x2: "16", y2: "6" }),
+            React.createElement('line', { x1: "8", y1: "2", x2: "8", y2: "6" }),
+            React.createElement('line', { x1: "3", y1: "10", x2: "21", y2: "10" })
+        );
+        
+        const MapPin = ({ className }) => React.createElement('svg', { 
+            className, fill: "none", stroke: "currentColor", viewBox: "0 0 24 24", strokeWidth: "2"
+        },
+            React.createElement('path', { d: "M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" }),
+            React.createElement('circle', { cx: "12", cy: "10", r: "3" })
+        );
+        
+        const Clock = ({ className }) => React.createElement('svg', { 
+            className, fill: "none", stroke: "currentColor", viewBox: "0 0 24 24", strokeWidth: "2"
+        },
+            React.createElement('circle', { cx: "12", cy: "12", r: "10" }),
+            React.createElement('polyline', { points: "12,6 12,12 16,14" })
+        );
+        
+        const User = ({ className }) => React.createElement('svg', { 
+            className, fill: "none", stroke: "currentColor", viewBox: "0 0 24 24", strokeWidth: "2"
+        },
+            React.createElement('path', { d: "M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" }),
+            React.createElement('circle', { cx: "12", cy: "7", r: "4" })
+        );
+        
+        const Mail = ({ className }) => React.createElement('svg', { 
+            className, fill: "none", stroke: "currentColor", viewBox: "0 0 24 24", strokeWidth: "2"
+        },
+            React.createElement('path', { d: "M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" }),
+            React.createElement('polyline', { points: "22,6 12,13 2,6" })
+        );
+        
+        const Shield = ({ className }) => React.createElement('svg', { 
+            className, fill: "none", stroke: "currentColor", viewBox: "0 0 24 24", strokeWidth: "2"
+        },
+            React.createElement('path', { d: "M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" })
+        );
+        
+        const X = ({ className }) => React.createElement('svg', { 
+            className, fill: "none", stroke: "currentColor", viewBox: "0 0 24 24", strokeWidth: "2"
+        },
+            React.createElement('line', { x1: "18", y1: "6", x2: "6", y2: "18" }),
+            React.createElement('line', { x1: "6", y1: "6", x2: "18", y2: "18" })
+        );
+
+        const Check = ({ className }) => React.createElement('svg', { 
+            className, fill: "none", stroke: "currentColor", viewBox: "0 0 24 24", strokeWidth: "2"
+        },
+            React.createElement('polyline', { points: "20,6 9,17 4,12" })
+        );
+
+        const Trash = ({ className }) => React.createElement('svg', { 
+            className, fill: "none", stroke: "currentColor", viewBox: "0 0 24 24", strokeWidth: "2"
+        },
+            React.createElement('polyline', { points: "3,6 5,6 21,6" }),
+            React.createElement('path', { d: "M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" })
+        );
+
+        function DallasEventsApp() {
+            // Form state
+            const [formData, setFormData] = useState({
+                eventName: '',
+                location: '',
+                date: '',
+                time: '',
+                frequency: 'one-time',
+                organizerName: '',
+                organizerEmail: '',
+                socialMediaAccount: ''
+            });
+
+            // App state
+            const [currentView, setCurrentView] = useState('public'); // 'public' or 'admin'
+            const [isAdminAuthenticated, setIsAdminAuthenticated] = useState(false);
+            const [showAdminLogin, setShowAdminLogin] = useState(false);
+            const [adminLoginEmail, setAdminLoginEmail] = useState('');
+            const [selectedEvent, setSelectedEvent] = useState(null);
+
+            // Events state
+            const [pendingEvents, setPendingEvents] = useState([]);
+            const [approvedEvents, setApprovedEvents] = useState([
+                {
+                    id: 1,
+                    eventName: "Salsa Night at Deep Ellum",
+                    location: "Deep Ellum Dance Studio",
+                    date: new Date().toISOString().split('T')[0],
+                    time: "20:00",
+                    frequency: "weekly",
+                    organizerName: "Maria Rodriguez",
+                    organizerEmail: "maria@deepellumdance.com",
+                    socialMediaAccount: "@DeepEllumSalsa"
+                },
+                {
+                    id: 2,
+                    eventName: "Hip-Hop Workshop",
+                    location: "Dallas Youth Center",
+                    date: new Date(Date.now() + 86400000 * 2).toISOString().split('T')[0],
+                    time: "15:00",
+                    frequency: "one-time",
+                    organizerName: "DJ Marcus",
+                    organizerEmail: "marcus@dallashiphop.com",
+                    socialMediaAccount: "@DallasBBreakers"
+                }
+            ]);
+
+            // Calendar state
+            const [currentMonth, setCurrentMonth] = useState(new Date());
+
+            // Admin users (simplified)
+            const adminUsers = [
+                { email: 'admin@example.com', name: 'Primary Admin' },
+                { email: 'arishpardiwalla@gmail.com', name: 'Arish Pardiwalla' }
+            ];
+
+            // Helper functions
+            const handleInputChange = (e) => {
+                const { name, value } = e.target;
+                setFormData(prev => ({ ...prev, [name]: value }));
+            };
+
+            const handleSubmit = () => {
+                if (!formData.eventName || !formData.location || !formData.date || !formData.time || !formData.organizerName || !formData.organizerEmail) {
+                    alert('Please fill in all required fields');
+                    return;
                 }
 
-                const { useState } = React;
-                const { createRoot } = ReactDOM;
-                const createElement = React.createElement;
-
-                // SVG Icons as functions
-                const Calendar = (props) => createElement('svg', { 
-                    className: props.className, 
-                    fill: "none", 
-                    stroke: "currentColor", 
-                    viewBox: "0 0 24 24",
-                    strokeWidth: "2"
-                },
-                    createElement('rect', { x: "3", y: "4", width: "18", height: "18", rx: "2", ry: "2" }),
-                    createElement('line', { x1: "16", y1: "2", x2: "16", y2: "6" }),
-                    createElement('line', { x1: "8", y1: "2", x2: "8", y2: "6" }),
-                    createElement('line', { x1: "3", y1: "10", x2: "21", y2: "10" })
-                );
+                const newEvent = {
+                    ...formData,
+                    id: Date.now(),
+                    submittedAt: new Date().toISOString()
+                };
                 
-                const MapPin = (props) => createElement('svg', { 
-                    className: props.className, 
-                    fill: "none", 
-                    stroke: "currentColor", 
-                    viewBox: "0 0 24 24",
-                    strokeWidth: "2"
-                },
-                    createElement('path', { d: "M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" }),
-                    createElement('circle', { cx: "12", cy: "10", r: "3" })
-                );
+                setPendingEvents(prev => [...prev, newEvent]);
+                setFormData({
+                    eventName: '',
+                    location: '',
+                    date: '',
+                    time: '',
+                    frequency: 'one-time',
+                    organizerName: '',
+                    organizerEmail: '',
+                    socialMediaAccount: ''
+                });
                 
-                const Clock = (props) => createElement('svg', { 
-                    className: props.className, 
-                    fill: "none", 
-                    stroke: "currentColor", 
-                    viewBox: "0 0 24 24",
-                    strokeWidth: "2"
-                },
-                    createElement('circle', { cx: "12", cy: "12", r: "10" }),
-                    createElement('polyline', { points: "12,6 12,12 16,14" })
-                );
+                alert('Event submitted for approval!');
+            };
+
+            const formatDate = (dateString) => {
+                return new Date(dateString).toLocaleDateString('en-US', {
+                    weekday: 'long',
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric'
+                });
+            };
+
+            const formatTime = (timeString) => {
+                return new Date('2000-01-01T' + timeString).toLocaleTimeString('en-US', {
+                    hour: 'numeric',
+                    minute: '2-digit',
+                    hour12: true
+                });
+            };
+
+            const handleAdminLogin = () => {
+                const admin = adminUsers.find(u => u.email.toLowerCase() === adminLoginEmail.toLowerCase());
+                if (admin) {
+                    setIsAdminAuthenticated(true);
+                    setShowAdminLogin(false);
+                    setAdminLoginEmail('');
+                    alert(`Welcome, ${admin.name}!`);
+                } else {
+                    alert('Email not found in admin users');
+                }
+            };
+
+            const handleAdminLogout = () => {
+                setIsAdminAuthenticated(false);
+                setCurrentView('public');
+            };
+
+            const approveEvent = (eventId) => {
+                const event = pendingEvents.find(e => e.id === eventId);
+                if (event) {
+                    setPendingEvents(prev => prev.filter(e => e.id !== eventId));
+                    setApprovedEvents(prev => [...prev, event]);
+                    alert(`Event "${event.eventName}" approved!`);
+                }
+            };
+
+            const rejectEvent = (eventId) => {
+                const event = pendingEvents.find(e => e.id === eventId);
+                if (event && confirm(`Reject "${event.eventName}"?`)) {
+                    setPendingEvents(prev => prev.filter(e => e.id !== eventId));
+                    alert(`Event "${event.eventName}" rejected`);
+                }
+            };
+
+            const removeEvent = (eventId) => {
+                const event = approvedEvents.find(e => e.id === eventId);
+                if (event && confirm(`Remove "${event.eventName}" from calendar?`)) {
+                    setApprovedEvents(prev => prev.filter(e => e.id !== eventId));
+                    alert('Event removed from calendar');
+                }
+            };
+
+            // Calendar functions
+            const getDaysInMonth = (date) => {
+                const year = date.getFullYear();
+                const month = date.getMonth();
+                const firstDay = new Date(year, month, 1);
+                const daysInMonth = new Date(year, month + 1, 0).getDate();
+                const startingDayOfWeek = firstDay.getDay();
                 
-                const User = (props) => createElement('svg', { 
-                    className: props.className, 
-                    fill: "none", 
-                    stroke: "currentColor", 
-                    viewBox: "0 0 24 24",
-                    strokeWidth: "2"
-                },
-                    createElement('path', { d: "M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" }),
-                    createElement('circle', { cx: "12", cy: "7", r: "4" })
-                );
-                
-                const Mail = (props) => createElement('svg', { 
-                    className: props.className, 
-                    fill: "none", 
-                    stroke: "currentColor", 
-                    viewBox: "0 0 24 24",
-                    strokeWidth: "2"
-                },
-                    createElement('path', { d: "M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" }),
-                    createElement('polyline', { points: "22,6 12,13 2,6" })
-                );
-                
-                const Repeat = (props) => createElement('svg', { 
-                    className: props.className, 
-                    fill: "none", 
-                    stroke: "currentColor", 
-                    viewBox: "0 0 24 24",
-                    strokeWidth: "2"
-                },
-                    createElement('polyline', { points: "17,1 21,5 17,9" }),
-                    createElement('path', { d: "M3 11V9a4 4 0 0 1 4-4h14" }),
-                    createElement('polyline', { points: "7,23 3,19 7,15" }),
-                    createElement('path', { d: "M21 13v2a4 4 0 0 1-4 4H3" })
-                );
-                
-                const Shield = (props) => createElement('svg', { 
-                    className: props.className, 
-                    fill: "none", 
-                    stroke: "currentColor", 
-                    viewBox: "0 0 24 24",
-                    strokeWidth: "2"
-                },
-                    createElement('path', { d: "M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" })
-                );
-                
-                const X = (props) => createElement('svg', { 
-                    className: props.className, 
-                    fill: "none", 
-                    stroke: "currentColor", 
-                    viewBox: "0 0 24 24",
-                    strokeWidth: "2"
-                },
-                    createElement('line', { x1: "18", y1: "6", x2: "6", y2: "18" }),
-                    createElement('line', { x1: "6", y1: "6", x2: "18", y2: "18" })
-                );
-                
-                const MessageSquare = (props) => createElement('svg', { 
-                    className: props.className, 
-                    fill: "none", 
-                    stroke: "currentColor", 
-                    viewBox: "0 0 24 24",
-                    strokeWidth: "2"
-                },
-                    createElement('path', { d: "M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" })
-                );
+                const days = [];
+                for (let i = 0; i < startingDayOfWeek; i++) {
+                    days.push(null);
+                }
+                for (let day = 1; day <= daysInMonth; day++) {
+                    days.push(new Date(year, month, day));
+                }
+                return days;
+            };
 
-                const Check = (props) => createElement('svg', { 
-                    className: props.className, 
-                    fill: "none", 
-                    stroke: "currentColor", 
-                    viewBox: "0 0 24 24",
-                    strokeWidth: "2"
-                },
-                    createElement('polyline', { points: "20,6 9,17 4,12" })
-                );
+            const getEventsForDate = (date) => {
+                if (!date) return [];
+                const dateString = date.toISOString().split('T')[0];
+                return approvedEvents.filter(event => event.date === dateString);
+            };
 
-                const Eye = (props) => createElement('svg', { 
-                    className: props.className, 
-                    fill: "none", 
-                    stroke: "currentColor", 
-                    viewBox: "0 0 24 24",
-                    strokeWidth: "2"
-                },
-                    createElement('path', { d: "M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" }),
-                    createElement('circle', { cx: "12", cy: "12", r: "3" })
-                );
+            const isToday = (date) => {
+                if (!date) return false;
+                const today = new Date();
+                return date.toDateString() === today.toDateString();
+            };
 
-                const Settings = (props) => createElement('svg', { 
-                    className: props.className, 
-                    fill: "none", 
-                    stroke: "currentColor", 
-                    viewBox: "0 0 24 24",
-                    strokeWidth: "2"
-                },
-                    createElement('circle', { cx: "12", cy: "12", r: "3" }),
-                    createElement('path', { d: "M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1 1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z" })
-                );
+            const scrollToSection = (id) => {
+                document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' });
+            };
 
-                const UserPlus = (props) => createElement('svg', { 
-                    className: props.className, 
-                    fill: "none", 
-                    stroke: "currentColor", 
-                    viewBox: "0 0 24 24",
-                    strokeWidth: "2"
-                },
-                    createElement('path', { d: "M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" }),
-                    createElement('circle', { cx: "8.5", cy: "7", r: "4" }),
-                    createElement('line', { x1: "20", y1: "8", x2: "20", y2: "14" }),
-                    createElement('line', { x1: "23", y1: "11", x2: "17", y2: "11" })
-                );
-
-                const Trash2 = (props) => createElement('svg', { 
-                    className: props.className, 
-                    fill: "none", 
-                    stroke: "currentColor", 
-                    viewBox: "0 0 24 24",
-                    strokeWidth: "2"
-                },
-                    createElement('polyline', { points: "3,6 5,6 21,6" }),
-                    createElement('path', { d: "M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" }),
-                    createElement('line', { x1: "10", y1: "11", x2: "10", y2: "17" }),
-                    createElement('line', { x1: "14", y1: "11", x2: "14", y2: "17" })
-                );
-
-                const Send = (props) => createElement('svg', { 
-                    className: props.className, 
-                    fill: "none", 
-                    stroke: "currentColor", 
-                    viewBox: "0 0 24 24",
-                    strokeWidth: "2"
-                },
-                    createElement('line', { x1: "22", y1: "2", x2: "11", y2: "13" }),
-                    createElement('polygon', { points: "22,2 15,22 11,13 2,9 22,2" })
-                );
-
-                function EventCalendarLanding() {
-                    const [formData, setFormData] = useState({
-                        eventName: '',
-                        location: '',
-                        date: '',
-                        time: '',
-                        frequency: 'one-time',
-                        organizerName: '',
-                        organizerEmail: '',
-                        socialMediaAccount: ''
-                    });
-
-                    const [currentView, setCurrentView] = useState('public');
-                    const [pendingEvents, setPendingEvents] = useState([]);
-                    const [approvedEvents, setApprovedEvents] = useState([
-                        {
-                            id: 1001,
-                            eventName: "Salsa Night at Deep Ellum",
-                            location: "Deep Ellum Dance Studio",
-                            date: new Date().toISOString().split('T')[0],
-                            time: "20:00",
-                            frequency: "weekly",
-                            organizerName: "Maria Rodriguez",
-                            organizerEmail: "maria@deepellumdance.com",
-                            socialMediaAccount: "@DeepEllumSalsa",
-                            status: "approved"
-                        },
-                        {
-                            id: 1002,
-                            eventName: "Hip-Hop Dance Workshop",
-                            location: "Dallas Youth Center",
-                            date: new Date(Date.now() + 86400000 * 2).toISOString().split('T')[0],
-                            time: "15:00",
-                            frequency: "one-time",
-                            organizerName: "DJ Marcus",
-                            organizerEmail: "marcus@dallashiphop.com",
-                            socialMediaAccount: "@DallasBBreakers",
-                            status: "approved"
-                        },
-                        {
-                            id: 1003,
-                            eventName: "Contemporary Dance Class",
-                            location: "Arts District Studio - Room 3",
-                            date: new Date(Date.now() + 86400000 * 5).toISOString().split('T')[0],
-                            time: "18:30",
-                            frequency: "weekly",
-                            organizerName: "Dallas Contemporary Collective",
-                            organizerEmail: "info@dallascontemporary.org",
-                            socialMediaAccount: "@DallasContemporary",
-                            status: "approved"
-                        }
-                    ]);
-                    
-                    const [isAdminAuthenticated, setIsAdminAuthenticated] = useState(false);
-                    const [currentAdminUser, setCurrentAdminUser] = useState(null);
-                    const [showAdminLogin, setShowAdminLogin] = useState(false);
-                    const [adminLoginEmail, setAdminLoginEmail] = useState('');
-                    
-                    const [adminUsers] = useState([
-                        { id: 1, email: 'admin@example.com', name: 'Primary Admin', role: 'Super Admin', addedDate: '2025-01-01' },
-                        { id: 2, email: 'arishpardiwalla@gmail.com', name: 'Arish Pardiwalla', role: 'Super Admin', addedDate: '2025-07-15' }
-                    ]);
-                    
-                    const [selectedEvent, setSelectedEvent] = useState(null);
-                    const [currentMonth, setCurrentMonth] = useState(new Date());
-
-                    const handleInputChange = function(e) {
-                        const name = e.target.name;
-                        const value = e.target.value;
-                        setFormData(function(prev) {
-                            const newData = Object.assign({}, prev);
-                            newData[name] = value;
-                            return newData;
-                        });
-                    };
-
-                    const handleSubmit = function() {
-                        const newEvent = Object.assign({}, formData, {
-                            id: Date.now(),
-                            submittedAt: new Date().toISOString(),
-                            status: 'pending'
-                        });
-                        
-                        setPendingEvents(function(prev) {
-                            return prev.concat([newEvent]);
-                        });
-                        
-                        setFormData({
-                            eventName: '',
-                            location: '',
-                            date: '',
-                            time: '',
-                            frequency: 'one-time',
-                            organizerName: '',
-                            organizerEmail: '',
-                            socialMediaAccount: ''
-                        });
-                        
-                        alert('Event submitted for approval!');
-                    };
-
-                    const formatDate = function(dateString) {
-                        return new Date(dateString).toLocaleDateString('en-US', {
-                            weekday: 'long',
-                            year: 'numeric',
-                            month: 'long',
-                            day: 'numeric'
-                        });
-                    };
-
-                    const formatTime = function(timeString) {
-                        return new Date('2000-01-01T' + timeString).toLocaleTimeString('en-US', {
-                            hour: 'numeric',
-                            minute: '2-digit',
-                            hour12: true
-                        });
-                    };
-
-                    const handleAdminLogin = function() {
-                        if (!adminLoginEmail.trim()) {
-                            alert('Please enter your admin email');
-                            return;
-                        }
-
-                        const adminUser = adminUsers.find(function(admin) {
-                            return admin.email.toLowerCase() === adminLoginEmail.toLowerCase();
-                        });
-
-                        if (adminUser) {
-                            setIsAdminAuthenticated(true);
-                            setCurrentAdminUser(adminUser);
-                            setShowAdminLogin(false);
-                            setAdminLoginEmail('');
-                            console.log('Admin logged in:', adminUser);
-                        } else {
-                            alert('Email not found in admin users. Please contact a Super Admin to be added.');
-                        }
-                    };
-
-                    const handleAdminLogout = function() {
-                        setIsAdminAuthenticated(false);
-                        setCurrentAdminUser(null);
-                        setCurrentView('public');
-                        console.log('Admin logged out');
-                    };
-
-                    const toggleAdminAccess = function() {
-                        if (isAdminAuthenticated) {
-                            if (currentView === 'admin') {
-                                setCurrentView('public');
-                            } else {
-                                setCurrentView('admin');
-                            }
-                        } else {
-                            setShowAdminLogin(true);
-                        }
-                    };
-
-                    const getDaysInMonth = function(date) {
-                        const year = date.getFullYear();
-                        const month = date.getMonth();
-                        const firstDay = new Date(year, month, 1);
-                        const lastDay = new Date(year, month + 1, 0);
-                        const daysInMonth = lastDay.getDate();
-                        const startingDayOfWeek = firstDay.getDay();
-                        
-                        const days = [];
-                        
-                        for (let i = 0; i < startingDayOfWeek; i++) {
-                            days.push(null);
-                        }
-                        
-                        for (let day = 1; day <= daysInMonth; day++) {
-                            days.push(new Date(year, month, day));
-                        }
-                        
-                        return days;
-                    };
-
-                    const getEventsForDate = function(date) {
-                        if (!date) return [];
-                        
-                        const dateString = date.toISOString().split('T')[0];
-                        return approvedEvents.filter(function(event) {
-                            return event.date === dateString;
-                        });
-                    };
-
-                    const formatCalendarDate = function(date) {
-                        return date.toLocaleDateString('en-US', {
-                            month: 'long',
-                            year: 'numeric'
-                        });
-                    };
-
-                    const handleEventClick = function(event) {
-                        setSelectedEvent(event);
-                    };
-
-                    const isToday = function(date) {
-                        if (!date) return false;
-                        const today = new Date();
-                        return date.toDateString() === today.toDateString();
-                    };
-
-                    const isPastDate = function(date) {
-                        if (!date) return false;
-                        const today = new Date();
-                        today.setHours(0, 0, 0, 0);
-                        return date < today;
-                    };
-
-                    const goToPreviousMonth = function() {
-                        setCurrentMonth(function(prev) {
-                            const newDate = new Date(prev);
-                            newDate.setMonth(prev.getMonth() - 1);
-                            return newDate;
-                        });
-                    };
-
-                    const goToNextMonth = function() {
-                        setCurrentMonth(function(prev) {
-                            const newDate = new Date(prev);
-                            newDate.setMonth(prev.getMonth() + 1);
-                            return newDate;
-                        });
-                    };
-
-                    const goToCurrentMonth = function() {
-                        setCurrentMonth(new Date());
-                    };
-
-                    const scrollToElement = function(id) {
-                        const element = document.getElementById(id);
-                        if (element) {
-                            element.scrollIntoView({ behavior: 'smooth' });
-                        }
-                    };
-
-                    // Admin event management functions
-                    const openCommentModal = function(eventId, action) {
-                        setShowCommentModal({ eventId: eventId, action: action });
-                    };
-
-                    const submitAdminAction = function() {
-                        const modal = showCommentModal;
-                        if (!modal) return;
-                        
-                        const comment = adminComments[modal.eventId] || '';
-                        
-                        if (modal.action === 'approve') {
-                            handleApprove(modal.eventId, comment);
-                        } else if (modal.action === 'reject') {
-                            if (!comment.trim()) {
-                                alert('Please provide a reason for rejection');
-                                return;
-                            }
-                            handleReject(modal.eventId, comment);
-                        }
-                        
-                        setShowCommentModal(null);
-                        const newComments = Object.assign({}, adminComments);
-                        newComments[modal.eventId] = '';
-                        setAdminComments(newComments);
-                    };
-
-                    const handleApprove = function(eventId, comment) {
-                        const event = pendingEvents.find(function(e) { return e.id === eventId; });
-                        if (event) {
-                            setPendingEvents(function(prev) {
-                                return prev.filter(function(e) { return e.id !== eventId; });
-                            });
-                            const approvedEvent = Object.assign({}, event, { 
-                                status: 'approved', 
-                                adminComment: comment 
-                            });
-                            setApprovedEvents(function(prev) {
-                                return prev.concat([approvedEvent]);
-                            });
-                            
-                            // Simulate sending email
-                            const emailRecord = {
-                                id: Date.now(),
-                                to: event.organizerEmail,
-                                subject: 'Your event "' + event.eventName + '" has been approved!',
-                                body: 'Dear ' + event.organizerName + ',\n\nYour event has been approved!\n\nBest regards,\nDallas Dance Events Team',
-                                type: 'approval',
-                                sentAt: new Date().toISOString(),
-                                status: 'sent'
-                            };
-                            setEmailHistory(function(prev) { return [emailRecord].concat(prev); });
-                            
-                            alert('Event approved! Confirmation email sent to ' + event.organizerEmail);
-                        }
-                    };
-
-                    const handleReject = function(eventId, comment) {
-                        const event = pendingEvents.find(function(e) { return e.id === eventId; });
-                        if (event) {
-                            setPendingEvents(function(prev) {
-                                return prev.filter(function(e) { return e.id !== eventId; });
-                            });
-                            const rejectedEvent = Object.assign({}, event, { 
-                                status: 'rejected', 
-                                adminComment: comment 
-                            });
-                            setRejectedEvents(function(prev) {
-                                return prev.concat([rejectedEvent]);
-                            });
-                            
-                            // Simulate sending email
-                            const emailRecord = {
-                                id: Date.now(),
-                                to: event.organizerEmail,
-                                subject: 'Your event "' + event.eventName + '" needs revision',
-                                body: 'Dear ' + event.organizerName + ',\n\nYour event submission needs revision.\n\nReason: ' + comment + '\n\nBest regards,\nDallas Dance Events Team',
-                                type: 'rejection',
-                                sentAt: new Date().toISOString(),
-                                status: 'sent'
-                            };
-                            setEmailHistory(function(prev) { return [emailRecord].concat(prev); });
-                            
-                            alert('Event rejected. Notification email sent to ' + event.organizerEmail);
-                        }
-                    };
-
-                    const removeApprovedEvent = function(eventId) {
-                        const event = approvedEvents.find(function(e) { return e.id === eventId; });
-                        if (event && confirm('Are you sure you want to remove "' + event.eventName + '" from the calendar?')) {
-                            setApprovedEvents(function(prev) {
-                                return prev.filter(function(e) { return e.id !== eventId; });
-                            });
-                            alert('Event successfully removed from calendar');
-                        }
-                    };
-
-                    const addAdminUser = function() {
-                        if (!newAdminEmail.trim() || !newAdminName.trim()) {
-                            alert('Please fill in both email and name fields');
-                            return;
-                        }
-                        
-                        if (adminUsers.some(function(admin) { 
-                            return admin.email.toLowerCase() === newAdminEmail.toLowerCase(); 
-                        })) {
-                            alert('This email is already an admin user');
-                            return;
-                        }
-
-                        const newAdmin = {
-                            id: Date.now(),
-                            email: newAdminEmail.trim(),
-                            name: newAdminName.trim(),
-                            role: newAdminRole,
-                            addedDate: new Date().toISOString().split('T')[0]
-                        };
-
-                        setAdminUsers(function(prev) { return prev.concat([newAdmin]); });
-                        setNewAdminEmail('');
-                        setNewAdminName('');
-                        setNewAdminRole('Admin');
-                        
-                        // Simulate sending invitation email
-                        const emailRecord = {
-                            id: Date.now(),
-                            to: newAdmin.email,
-                            subject: 'You\'ve been invited as an admin for Dallas Dance Events',
-                            body: 'Dear ' + newAdmin.name + ',\n\nYou\'ve been invited as an admin.\n\nRole: ' + newAdmin.role + '\n\nBest regards,\nDallas Dance Events Team',
-                            type: 'invitation',
-                            sentAt: new Date().toISOString(),
-                            status: 'sent'
-                        };
-                        setEmailHistory(function(prev) { return [emailRecord].concat(prev); });
-                        
-                        alert(newAdmin.name + ' has been added as an admin user and invitation email sent!');
-                    };
-
-                    const removeAdminUser = function(userId) {
-                        const user = adminUsers.find(function(admin) { return admin.id === userId; });
-                        if (user && user.role === 'Super Admin') {
-                            alert('Cannot remove Super Admin user');
-                            return;
-                        }
-                        
-                        if (confirm('Are you sure you want to remove ' + user.name + ' from admin access?')) {
-                            setAdminUsers(function(prev) {
-                                return prev.filter(function(admin) { return admin.id !== userId; });
-                            });
-                            console.log('Admin user removed:', user);
-                        }
-                    };
-
-                    return createElement('div', { className: "min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50" },
-                        // Header
-                        createElement('header', { className: "bg-white/80 backdrop-blur-md border-b border-gray-200 sticky top-0 z-10" },
-                            createElement('div', { className: "max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4" },
-                                createElement('div', { className: "flex items-center justify-between" },
-                                    createElement('div', { className: "flex items-center space-x-3" },
-                                        createElement(Calendar, { className: "h-8 w-8 text-blue-600" }),
-                                        createElement('h1', { className: "text-2xl font-bold text-gray-900" }, "Dallas Dance Events")
-                                    ),
-                                    createElement('div', { className: "flex items-center space-x-4" },
-                                        createElement('nav', { className: "hidden md:flex space-x-6" },
-                                            currentView === 'public' ? [
-                                                createElement('a', { 
-                                                    key: 'calendar', 
-                                                    href: "#calendar", 
-                                                    className: "text-gray-600 hover:text-blue-600 transition-colors",
-                                                    onClick: function(e) { e.preventDefault(); scrollToElement('calendar'); }
-                                                }, "View Calendar"),
-                                                createElement('a', { 
-                                                    key: 'submit', 
-                                                    href: "#submit", 
-                                                    className: "text-gray-600 hover:text-blue-600 transition-colors",
-                                                    onClick: function(e) { e.preventDefault(); scrollToElement('submit'); }
-                                                }, "Submit Event")
-                                            ] : createElement('span', { className: "text-gray-600" }, "Admin Dashboard")
-                                        ),
-                                        
-                                        isAdminAuthenticated && createElement('button', {
-                                            onClick: toggleAdminAccess,
-                                            className: "flex items-center space-x-2 px-4 py-2 rounded-lg font-medium transition-all duration-200 " + 
-                                                (currentView === 'admin' 
-                                                    ? 'bg-red-100 text-red-700 hover:bg-red-200' 
-                                                    : 'bg-blue-100 text-blue-700 hover:bg-blue-200')
-                                        },
-                                            createElement(Shield, { className: "h-4 w-4" }),
-                                            createElement('span', null, currentView === 'public' ? 'Admin Dashboard' : 'Exit Admin')
-                                        ),
-                                        
-                                        isAdminAuthenticated ? 
-                                            createElement('div', { className: "flex items-center space-x-3" },
-                                                createElement('span', { className: "text-sm text-gray-600" }, 
-                                                    'Welcome, ' + (currentAdminUser ? currentAdminUser.name : 'Admin')
-                                                ),
-                                                createElement('button', {
-                                                    onClick: handleAdminLogout,
-                                                    className: "text-sm text-gray-500 hover:text-gray-700 transition-colors"
-                                                }, "Logout")
-                                            ) : 
-                                            createElement('button', {
-                                                onClick: function() { setShowAdminLogin(true); },
-                                                className: "text-sm text-gray-600 hover:text-blue-600 transition-colors flex items-center space-x-1"
-                                            },
-                                                createElement(Shield, { className: "h-4 w-4" }),
-                                                createElement('span', null, "Admin Login")
-                                            )
-                                    )
-                                )
-                            )
-                        ),
-
-                        // Main Content
-                        currentView === 'public' ? 
-                            // Public View
-                            [
-                                // Hero Section
-                                createElement('section', { key: 'hero', className: "relative py-20 px-4 sm:px-6 lg:px-8" },
-                                    createElement('div', { className: "max-w-4xl mx-auto text-center" },
-                                        createElement('h2', { className: "text-5xl font-bold text-gray-900 mb-6 leading-tight" },
-                                            "Discover & Share",
-                                            createElement('span', { className: "text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-purple-600" }, " Dallas Dance Events")
-                                        ),
-                                        createElement('p', { className: "text-xl text-gray-600 mb-8 max-w-2xl mx-auto" },
-                                            "Join our vibrant dance community calendar. Submit your dance events for approval and discover what's happening in Dallas."
-                                        ),
-                                        createElement('div', { className: "flex flex-col sm:flex-row gap-4 justify-center" },
-                                            createElement('button', {
-                                                onClick: function() { scrollToElement('submit'); },
-                                                className: "bg-gradient-to-r from-blue-600 to-purple-600 text-white px-8 py-3 rounded-lg font-medium hover:from-blue-700 hover:to-purple-700 transition-all duration-200 shadow-lg hover:shadow-xl"
-                                            }, "Submit an Event"),
-                                            createElement('button', {
-                                                onClick: function() { scrollToElement('calendar'); },
-                                                className: "bg-white text-gray-700 px-8 py-3 rounded-lg font-medium border border-gray-300 hover:bg-gray-50 transition-all duration-200 shadow-md hover:shadow-lg"
-                                            }, "View Calendar")
-                                        )
-                                    )
-                                ),
-
-                                // Calendar Section
-                                createElement('section', { key: 'calendar', id: 'calendar', className: "py-16 px-4 sm:px-6 lg:px-8 bg-white/50" },
-                                    createElement('div', { className: "max-w-6xl mx-auto" },
-                                        createElement('div', { className: "text-center mb-12" },
-                                            createElement('div', { className: "flex items-center justify-center space-x-4 mb-4" },
-                                                createElement('button', {
-                                                    onClick: goToPreviousMonth,
-                                                    className: "p-2 rounded-lg bg-white border border-gray-300 hover:bg-gray-50 transition-colors shadow-sm"
-                                                },
-                                                    createElement('svg', { className: "h-5 w-5 text-gray-600", fill: "none", stroke: "currentColor", viewBox: "0 0 24 24" },
-                                                        createElement('path', { strokeLinecap: "round", strokeLinejoin: "round", strokeWidth: 2, d: "M15 19l-7-7 7-7" })
-                                                    )
-                                                ),
-                                                
-                                                createElement('div', { className: "text-center" },
-                                                    createElement('h3', { className: "text-3xl font-bold text-gray-900" }, formatCalendarDate(currentMonth)),
-                                                    createElement('button', {
-                                                        onClick: goToCurrentMonth,
-                                                        className: "text-sm text-blue-600 hover:text-blue-800 transition-colors mt-1"
-                                                    }, "Go to Current Month")
-                                                ),
-                                                
-                                                createElement('button', {
-                                                    onClick: goToNextMonth,
-                                                    className: "p-2 rounded-lg bg-white border border-gray-300 hover:bg-gray-50 transition-colors shadow-sm"
-                                                },
-                                                    createElement('svg', { className: "h-5 w-5 text-gray-600", fill: "none", stroke: "currentColor", viewBox: "0 0 24 24" },
-                                                        createElement('path', { strokeLinecap: "round", strokeLinejoin: "round", strokeWidth: 2, d: "M9 5l7 7-7 7" })
-                                                    )
-                                                )
-                                            ),
-                                            
-                                            createElement('p', { className: "text-gray-600" }, "Dallas Dance Events Calendar"),
-                                            createElement('p', { className: "text-sm text-gray-500 mt-1" },
-                                                approvedEvents.length > 0 ? 'Click on any event to view details' : 'No dance events scheduled yet - submit an event to get started!'
-                                            )
-                                        ),
-                                        
-                                        // Calendar Grid
-                                        createElement('div', { className: "bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden" },
-                                            // Calendar Header
-                                            createElement('div', { className: "bg-gray-50 border-b border-gray-200" },
-                                                createElement('div', { className: "grid grid-cols-7 gap-0" },
-                                                    ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(function(day) {
-                                                        return createElement('div', { key: day, className: "p-4 text-center" },
-                                                            createElement('span', { className: "text-sm font-semibold text-gray-900" }, day)
-                                                        );
-                                                    })
-                                                )
-                                            ),
-                                            
-                                            // Calendar Body
-                                            createElement('div', { className: "grid grid-cols-7 gap-0 bg-white" },
-                                                getDaysInMonth(currentMonth).map(function(date, index) {
-                                                    const dayEvents = getEventsForDate(date);
-                                                    const dayClassName = "min-h-[120px] border-r border-b border-gray-100 p-2 " +
-                                                        (date ? 'bg-white hover:bg-gray-50' : 'bg-gray-50') +
-                                                        (isToday(date) ? ' bg-blue-50' : '');
-                                                    
-                                                    return createElement('div', {
-                                                        key: index,
-                                                        className: dayClassName
-                                                    },
-                                                        date && [
-                                                            createElement('div', { key: 'date', className: "flex justify-between items-start mb-2" },
-                                                                createElement('span', { 
-                                                                    className: "text-sm font-medium " + (
-                                                                        isToday(date) 
-                                                                            ? 'bg-blue-600 text-white w-6 h-6 rounded-full flex items-center justify-center text-xs' 
-                                                                            : isPastDate(date)
-                                                                            ? 'text-gray-400'
-                                                                            : 'text-gray-900'
-                                                                    )
-                                                                }, date.getDate())
-                                                            ),
-                                                            
-                                                            createElement('div', { key: 'events', className: "space-y-1" },
-                                                                dayEvents.slice(0, 3).map(function(event) {
-                                                                    return createElement('div', {
-                                                                        key: event.id,
-                                                                        onClick: function() { handleEventClick(event); },
-                                                                        className: "bg-blue-100 text-blue-900 text-xs px-2 py-1 rounded cursor-pointer hover:bg-blue-200 hover:shadow-lg transition-all duration-200 border border-blue-200 transform hover:scale-105"
-                                                                    },
-                                                                        createElement('div', { className: "font-medium truncate" }, event.eventName),
-                                                                        createElement('div', { className: "text-blue-700" }, formatTime(event.time))
-                                                                    );
-                                                                }).concat(
-                                                                    dayEvents.length > 3 ? [createElement('div', { 
-                                                                        key: 'more',
-                                                                        className: "text-xs text-gray-500 px-2 py-1" 
-                                                                    }, '+' + (dayEvents.length - 3) + ' more')] : []
-                                                                )
-                                                            )
-                                                        ]
-                                                    );
-                                                })
-                                            )
-                                        ),
-                                        
-                                        // Calendar Legend
-                                        createElement('div', { className: "mt-6 flex flex-wrap justify-center gap-6 text-sm text-gray-600" },
-                                            createElement('div', { className: "flex items-center space-x-2" },
-                                                createElement('div', { className: "w-4 h-4 bg-blue-600 rounded-full" }),
-                                                createElement('span', null, "Today")
-                                            ),
-                                            createElement('div', { className: "flex items-center space-x-2" },
-                                                createElement('div', { className: "w-4 h-4 bg-blue-100 border border-blue-200 rounded" }),
-                                                createElement('span', null, "Events")
-                                            ),
-                                            createElement('div', { className: "flex items-center space-x-2" },
-                                                createElement('div', { className: "w-4 h-4 bg-gray-50 border border-gray-200 rounded" }),
-                                                createElement('span', null, "No events")
-                                            )
-                                        )
-                                    )
-                                ),
-
-                                // Event Submission Form
-                                createElement('section', { key: 'submit', id: 'submit', className: "py-16 px-4 sm:px-6 lg:px-8" },
-                                    createElement('div', { className: "max-w-2xl mx-auto" },
-                                        createElement('div', { className: "text-center mb-12" },
-                                            createElement('h3', { className: "text-3xl font-bold text-gray-900 mb-4" }, "Submit Your Dance Event"),
-                                            createElement('p', { className: "text-gray-600" }, "Share your dance event with the Dallas community. All submissions require admin approval.")
-                                        ),
-
-                                        createElement('div', { className: "bg-white rounded-2xl shadow-xl p-8 border border-gray-100" },
-                                            createElement('div', { className: "space-y-6" },
-                                                // Event Name
-                                                createElement('div', null,
-                                                    createElement('label', { htmlFor: "eventName", className: "flex items-center text-sm font-medium text-gray-700 mb-2" },
-                                                        createElement(Calendar, { className: "h-4 w-4 mr-2 text-blue-600" }),
-                                                        "Event Name"
-                                                    ),
-                                                    createElement('input', {
-                                                        type: "text",
-                                                        id: "eventName",
-                                                        name: "eventName",
-                                                        value: formData.eventName,
-                                                        onChange: handleInputChange,
-                                                        required: true,
-                                                        className: "w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200",
-                                                        placeholder: "Enter your event name"
-                                                    })
-                                                ),
-
-                                                // Location
-                                                createElement('div', null,
-                                                    createElement('label', { htmlFor: "location", className: "flex items-center text-sm font-medium text-gray-700 mb-2" },
-                                                        createElement(MapPin, { className: "h-4 w-4 mr-2 text-blue-600" }),
-                                                        "Location"
-                                                    ),
-                                                    createElement('input', {
-                                                        type: "text",
-                                                        id: "location",
-                                                        name: "location",
-                                                        value: formData.location,
-                                                        onChange: handleInputChange,
-                                                        required: true,
-                                                        className: "w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200",
-                                                        placeholder: "Event location or address"
-                                                    })
-                                                ),
-
-                                                // Date and Time Row
-                                                createElement('div', { className: "grid grid-cols-1 md:grid-cols-2 gap-6" },
-                                                    createElement('div', null,
-                                                        createElement('label', { htmlFor: "date", className: "flex items-center text-sm font-medium text-gray-700 mb-2" },
-                                                            createElement(Calendar, { className: "h-4 w-4 mr-2 text-blue-600" }),
-                                                            "Date"
-                                                        ),
-                                                        createElement('input', {
-                                                            type: "date",
-                                                            id: "date",
-                                                            name: "date",
-                                                            value: formData.date,
-                                                            onChange: handleInputChange,
-                                                            required: true,
-                                                            className: "w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
-                                                        })
-                                                    ),
-
-                                                    createElement('div', null,
-                                                        createElement('label', { htmlFor: "time", className: "flex items-center text-sm font-medium text-gray-700 mb-2" },
-                                                            createElement(Clock, { className: "h-4 w-4 mr-2 text-blue-600" }),
-                                                            "Time"
-                                                        ),
-                                                        createElement('input', {
-                                                            type: "time",
-                                                            id: "time",
-                                                            name: "time",
-                                                            value: formData.time,
-                                                            onChange: handleInputChange,
-                                                            required: true,
-                                                            className: "w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
-                                                        })
-                                                    )
-                                                ),
-
-                                                // Frequency
-                                                createElement('div', null,
-                                                    createElement('label', { htmlFor: "frequency", className: "flex items-center text-sm font-medium text-gray-700 mb-2" },
-                                                        createElement(Repeat, { className: "h-4 w-4 mr-2 text-blue-600" }),
-                                                        "Event Frequency"
-                                                    ),
-                                                    createElement('select', {
-                                                        id: "frequency",
-                                                        name: "frequency",
-                                                        value: formData.frequency,
-                                                        onChange: handleInputChange,
-                                                        className: "w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
-                                                    },
-                                                        createElement('option', { value: "one-time" }, "One-time event"),
-                                                        createElement('option', { value: "daily" }, "Daily"),
-                                                        createElement('option', { value: "weekly" }, "Weekly"),
-                                                        createElement('option', { value: "monthly" }, "Monthly"),
-                                                        createElement('option', { value: "yearly" }, "Yearly")
-                                                    )
-                                                ),
-
-                                                // Organizer Name
-                                                createElement('div', null,
-                                                    createElement('label', { htmlFor: "organizerName", className: "flex items-center text-sm font-medium text-gray-700 mb-2" },
-                                                        createElement(User, { className: "h-4 w-4 mr-2 text-blue-600" }),
-                                                        "Organizer Name"
-                                                    ),
-                                                    createElement('input', {
-                                                        type: "text",
-                                                        id: "organizerName",
-                                                        name: "organizerName",
-                                                        value: formData.organizerName,
-                                                        onChange: handleInputChange,
-                                                        required: true,
-                                                        className: "w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200",
-                                                        placeholder: "Your name"
-                                                    })
-                                                ),
-
-                                                // Organizer Email
-                                                createElement('div', null,
-                                                    createElement('label', { htmlFor: "organizerEmail", className: "flex items-center text-sm font-medium text-gray-700 mb-2" },
-                                                        createElement(Mail, { className: "h-4 w-4 mr-2 text-blue-600" }),
-                                                        "Contact Email"
-                                                    ),
-                                                    createElement('input', {
-                                                        type: "email",
-                                                        id: "organizerEmail",
-                                                        name: "organizerEmail",
-                                                        value: formData.organizerEmail,
-                                                        onChange: handleInputChange,
-                                                        required: true,
-                                                        className: "w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200",
-                                                        placeholder: "your.email@example.com"
-                                                    }),
-                                                    createElement('p', { className: "text-sm text-gray-500 mt-1" },
-                                                        "Your email will only be visible to admins and used for approval notifications"
-                                                    )
-                                                ),
-
-                                                // Social Media Account
-                                                createElement('div', null,
-                                                    createElement('label', { htmlFor: "socialMediaAccount", className: "flex items-center text-sm font-medium text-gray-700 mb-2" },
-                                                        createElement(MessageSquare, { className: "h-4 w-4 mr-2 text-blue-600" }),
-                                                        "Social Media Account"
-                                                    ),
-                                                    createElement('input', {
-                                                        type: "text",
-                                                        id: "socialMediaAccount",
-                                                        name: "socialMediaAccount",
-                                                        value: formData.socialMediaAccount,
-                                                        onChange: handleInputChange,
-                                                        className: "w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200",
-                                                        placeholder: "@yourusername or social media link"
-                                                    }),
-                                                    createElement('p', { className: "text-sm text-gray-500 mt-1" },
-                                                        "Optional: Your social media handle or link for event updates"
-                                                    )
-                                                ),
-
-                                                // Submit Button
-                                                createElement('button', {
-                                                    onClick: handleSubmit,
-                                                    className: "w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white py-3 px-6 rounded-lg font-medium hover:from-blue-700 hover:to-purple-700 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
-                                                }, "Submit Event for Approval")
-                                            )
-                                        ),
-
-                                        createElement('div', { className: "mt-8 text-center" },
-                                            createElement('p', { className: "text-sm text-gray-500" },
-                                                "All dance events are reviewed by our admin team before being published to the calendar. You'll receive an email notification about the approval status."
-                                            )
-                                        )
-                                    )
-                                )
-                            ] :
-                            // Admin Dashboard
-                            createElement('section', { className: "py-8 px-4 sm:px-6 lg:px-8 min-h-screen bg-gray-50" },
-                                createElement('div', { className: "max-w-7xl mx-auto" },
-                                    createElement('div', { className: "mb-8" },
-                                        createElement('h2', { className: "text-3xl font-bold text-gray-900 mb-2" }, "Admin Dashboard"),
-                                        createElement('p', { className: "text-gray-600" }, "Review and manage dance events & admin users")
-                                    ),
-
-                                    // Admin Navigation Tabs
-                                    createElement('div', { className: "mb-8" },
-                                        createElement('div', { className: "border-b border-gray-200" },
-                                            createElement('nav', { className: "-mb-px flex space-x-8" },
-                                                createElement('button', {
-                                                    onClick: function() { setAdminTab('events'); },
-                                                    className: "py-2 px-1 border-b-2 font-medium text-sm " + (
-                                                        adminTab === 'events'
-                                                            ? 'border-blue-500 text-blue-600'
-                                                            : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                                                    )
-                                                }, "Event Management"),
-                                                createElement('button', {
-                                                    onClick: function() { setAdminTab('users'); },
-                                                    className: "py-2 px-1 border-b-2 font-medium text-sm " + (
-                                                        adminTab === 'users'
-                                                            ? 'border-blue-500 text-blue-600'
-                                                            : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                                                    )
-                                                }, "Admin Users"),
-                                                createElement('button', {
-                                                    onClick: function() { setAdminTab('emails'); },
-                                                    className: "py-2 px-1 border-b-2 font-medium text-sm " + (
-                                                        adminTab === 'emails'
-                                                            ? 'border-blue-500 text-blue-600'
-                                                            : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                                                    )
-                                                }, "Email History (" + emailHistory.length + ")")
-                                            )
-                                        )
-                                    ),
-
-                                    // Admin Content based on selected tab
-                                    adminTab === 'events' ? [
-                                        // Admin Stats
-                                        createElement('div', { key: 'stats', className: "grid grid-cols-1 md:grid-cols-3 gap-6 mb-8" },
-                                            createElement('div', { className: "bg-yellow-50 border border-yellow-200 rounded-lg p-6" },
-                                                createElement('div', { className: "flex items-center" },
-                                                    createElement(Clock, { className: "h-8 w-8 text-yellow-600 mr-3" }),
-                                                    createElement('div', null,
-                                                        createElement('p', { className: "text-2xl font-bold text-yellow-900" }, pendingEvents.length),
-                                                        createElement('p', { className: "text-yellow-700" }, "Pending Dance Events")
-                                                    )
-                                                )
-                                            ),
-                                            createElement('div', { className: "bg-green-50 border border-green-200 rounded-lg p-6" },
-                                                createElement('div', { className: "flex items-center" },
-                                                    createElement(Check, { className: "h-8 w-8 text-green-600 mr-3" }),
-                                                    createElement('div', null,
-                                                        createElement('p', { className: "text-2xl font-bold text-green-900" }, approvedEvents.length),
-                                                        createElement('p', { className: "text-green-700" }, "Approved Dance Events")
-                                                    )
-                                                )
-                                            ),
-                                            createElement('div', { className: "bg-red-50 border border-red-200 rounded-lg p-6" },
-                                                createElement('div', { className: "flex items-center" },
-                                                    createElement(X, { className: "h-8 w-8 text-red-600 mr-3" }),
-                                                    createElement('div', null,
-                                                        createElement('p', { className: "text-2xl font-bold text-red-900" }, rejectedEvents.length),
-                                                        createElement('p', { className: "text-red-700" }, "Rejected Dance Events")
-                                                    )
-                                                )
-                                            )
-                                        ),
-
-                                        // Pending Events
-                                        createElement('div', { key: 'pending', className: "bg-white rounded-lg shadow-md mb-8" },
-                                            createElement('div', { className: "px-6 py-4 border-b border-gray-200" },
-                                                createElement('h3', { className: "text-lg font-semibold text-gray-900" }, "Pending Dance Events")
-                                            ),
-                                            createElement('div', { className: "p-6" },
-                                                pendingEvents.length > 0 ? 
-                                                    createElement('div', { className: "space-y-6" },
-                                                        pendingEvents.map(function(event) {
-                                                            return createElement('div', { 
-                                                                key: event.id, 
-                                                                className: "border border-gray-200 rounded-lg p-6 hover:shadow-md transition-shadow" 
-                                                            },
-                                                                createElement('div', { className: "flex justify-between items-start mb-4" },
-                                                                    createElement('div', { className: "flex-1" },
-                                                                        createElement('h4', { className: "text-xl font-bold text-gray-900 mb-2" }, event.eventName),
-                                                                        createElement('div', { className: "grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-gray-600" },
-                                                                            createElement('div', { className: "flex items-center" },
-                                                                                createElement(MapPin, { className: "h-4 w-4 mr-2" }),
-                                                                                event.location
-                                                                            ),
-                                                                            createElement('div', { className: "flex items-center" },
-                                                                                createElement(Calendar, { className: "h-4 w-4 mr-2" }),
-                                                                                formatDate(event.date)
-                                                                            ),
-                                                                            createElement('div', { className: "flex items-center" },
-                                                                                createElement(Clock, { className: "h-4 w-4 mr-2" }),
-                                                                                formatTime(event.time)
-                                                                            ),
-                                                                            createElement('div', { className: "flex items-center" },
-                                                                                createElement(Repeat, { className: "h-4 w-4 mr-2" }),
-                                                                                event.frequency
-                                                                            ),
-                                                                            createElement('div', { className: "flex items-center" },
-                                                                                createElement(User, { className: "h-4 w-4 mr-2" }),
-                                                                                event.organizerName
-                                                                            ),
-                                                                            createElement('div', { className: "flex items-center" },
-                                                                                createElement(Mail, { className: "h-4 w-4 mr-2" }),
-                                                                                event.organizerEmail
-                                                                            ),
-                                                                            event.socialMediaAccount && createElement('div', { className: "flex items-center" },
-                                                                                createElement(MessageSquare, { className: "h-4 w-4 mr-2" }),
-                                                                                event.socialMediaAccount
-                                                                            )
-                                                                        )
-                                                                    )
-                                                                ),
-                                                                createElement('div', { className: "flex flex-col sm:flex-row gap-3 pt-4 border-t border-gray-100" },
-                                                                    createElement('button', {
-                                                                        onClick: function() { openCommentModal(event.id, 'approve'); },
-                                                                        className: "flex items-center justify-center px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
-                                                                    },
-                                                                        createElement(Check, { className: "h-4 w-4 mr-2" }),
-                                                                        "Approve"
-                                                                    ),
-                                                                    createElement('button', {
-                                                                        onClick: function() { openCommentModal(event.id, 'reject'); },
-                                                                        className: "flex items-center justify-center px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
-                                                                    },
-                                                                        createElement(X, { className: "h-4 w-4 mr-2" }),
-                                                                        "Reject"
-                                                                    )
-                                                                )
-                                                            );
-                                                        })
-                                                    ) :
-                                                    createElement('div', { className: "text-center py-12" },
-                                                        createElement(Clock, { className: "h-12 w-12 text-gray-400 mx-auto mb-4" }),
-                                                        createElement('p', { className: "text-gray-500" }, "No pending dance events")
-                                                    )
-                                            )
-                                        ),
-
-                                        // Approved Events Management
-                                        createElement('div', { key: 'approved', className: "bg-white rounded-lg shadow-md" },
-                                            createElement('div', { className: "px-6 py-4 border-b border-gray-200" },
-                                                createElement('h3', { className: "text-lg font-semibold text-gray-900" }, "Approved Dance Events")
-                                            ),
-                                            createElement('div', { className: "p-6" },
-                                                approvedEvents.length > 0 ? 
-                                                    createElement('div', { className: "space-y-6" },
-                                                        approvedEvents.map(function(event) {
-                                                            return createElement('div', { 
-                                                                key: event.id, 
-                                                                className: "border border-gray-200 rounded-lg p-6 hover:shadow-md transition-shadow" 
-                                                            },
-                                                                createElement('div', { className: "flex justify-between items-start mb-4" },
-                                                                    createElement('div', { className: "flex-1" },
-                                                                        createElement('h4', { className: "text-xl font-bold text-gray-900 mb-2" }, event.eventName),
-                                                                        createElement('div', { className: "grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-gray-600" },
-                                                                            createElement('div', { className: "flex items-center" },
-                                                                                createElement(MapPin, { className: "h-4 w-4 mr-2" }),
-                                                                                event.location
-                                                                            ),
-                                                                            createElement('div', { className: "flex items-center" },
-                                                                                createElement(Calendar, { className: "h-4 w-4 mr-2" }),
-                                                                                formatDate(event.date)
-                                                                            ),
-                                                                            createElement('div', { className: "flex items-center" },
-                                                                                createElement(Clock, { className: "h-4 w-4 mr-2" }),
-                                                                                formatTime(event.time)
-                                                                            ),
-                                                                            createElement('div', { className: "flex items-center" },
-                                                                                createElement(User, { className: "h-4 w-4 mr-2" }),
-                                                                                event.organizerName
-                                                                            )
-                                                                        )
-                                                                    )
-                                                                ),
-                                                                createElement('div', { className: "flex justify-between items-center pt-4 border-t border-gray-100" },
-                                                                    createElement('span', { className: "inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800" },
-                                                                        "Approved"
-                                                                    ),
-                                                                    createElement('button', {
-                                                                        onClick: function() { removeApprovedEvent(event.id); },
-                                                                        className: "flex items-center px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors text-sm"
-                                                                    },
-                                                                        createElement(Trash2, { className: "h-4 w-4 mr-2" }),
-                                                                        "Remove from Calendar"
-                                                                    )
-                                                                )
-                                                            );
-                                                        })
-                                                    ) :
-                                                    createElement('div', { className: "text-center py-12" },
-                                                        createElement(Check, { className: "h-12 w-12 text-gray-400 mx-auto mb-4" }),
-                                                        createElement('p', { className: "text-gray-500" }, "No approved dance events")
-                                                    )
-                                            )
-                                        )
-                                    ] : adminTab === 'users' ? [
-                                        // Admin User Stats
-                                        createElement('div', { key: 'user-stats', className: "grid grid-cols-1 md:grid-cols-2 gap-6 mb-8" },
-                                            createElement('div', { className: "bg-blue-50 border border-blue-200 rounded-lg p-6" },
-                                                createElement('div', { className: "flex items-center" },
-                                                    createElement(Shield, { className: "h-8 w-8 text-blue-600 mr-3" }),
-                                                    createElement('div', null,
-                                                        createElement('p', { className: "text-2xl font-bold text-blue-900" }, adminUsers.length),
-                                                        createElement('p', { className: "text-blue-700" }, "Total Admin Users")
-                                                    )
-                                                )
-                                            ),
-                                            createElement('div', { className: "bg-purple-50 border border-purple-200 rounded-lg p-6" },
-                                                createElement('div', { className: "flex items-center" },
-                                                    createElement(Settings, { className: "h-8 w-8 text-purple-600 mr-3" }),
-                                                    createElement('div', null,
-                                                        createElement('p', { className: "text-2xl font-bold text-purple-900" }, 
-                                                            adminUsers.filter(function(u) { return u.role === 'Super Admin'; }).length
-                                                        ),
-                                                        createElement('p', { className: "text-purple-700" }, "Super Admins")
-                                                    )
-                                                )
-                                            )
-                                        ),
-
-                                        // Add New Admin User
-                                        createElement('div', { key: 'add-admin', className: "bg-white rounded-lg shadow-md mb-8" },
-                                            createElement('div', { className: "px-6 py-4 border-b border-gray-200" },
-                                                createElement('h3', { className: "text-lg font-semibold text-gray-900 flex items-center" },
-                                                    createElement(UserPlus, { className: "h-5 w-5 mr-2" }),
-                                                    "Add New Admin User"
-                                                )
-                                            ),
-                                            createElement('div', { className: "p-6" },
-                                                createElement('div', { className: "grid grid-cols-1 md:grid-cols-4 gap-4 mb-4" },
-                                                    createElement('div', null,
-                                                        createElement('label', { className: "block text-sm font-medium text-gray-700 mb-1" }, "Name"),
-                                                        createElement('input', {
-                                                            type: "text",
-                                                            value: newAdminName,
-                                                            onChange: function(e) { setNewAdminName(e.target.value); },
-                                                            placeholder: "Admin name",
-                                                            className: "w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                                                        })
-                                                    ),
-                                                    createElement('div', null,
-                                                        createElement('label', { className: "block text-sm font-medium text-gray-700 mb-1" }, "Email"),
-                                                        createElement('input', {
-                                                            type: "email",
-                                                            value: newAdminEmail,
-                                                            onChange: function(e) { setNewAdminEmail(e.target.value); },
-                                                            placeholder: "admin@example.com",
-                                                            className: "w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                                                        })
-                                                    ),
-                                                    createElement('div', null,
-                                                        createElement('label', { className: "block text-sm font-medium text-gray-700 mb-1" }, "Role"),
-                                                        createElement('select', {
-                                                            value: newAdminRole,
-                                                            onChange: function(e) { setNewAdminRole(e.target.value); },
-                                                            className: "w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                                                        },
-                                                            createElement('option', { value: "Admin" }, "Admin"),
-                                                            createElement('option', { value: "Super Admin" }, "Super Admin"),
-                                                            createElement('option', { value: "Moderator" }, "Moderator")
-                                                        )
-                                                    ),
-                                                    createElement('div', { className: "flex items-end" },
-                                                        createElement('button', {
-                                                            onClick: addAdminUser,
-                                                            className: "w-full bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors font-medium"
-                                                        }, "Add Admin")
-                                                    )
-                                                ),
-                                                createElement('p', { className: "text-sm text-gray-500" },
-                                                    "New admin users will receive an email invitation with login instructions."
-                                                )
-                                            )
-                                        ),
-
-                                        // Current Admin Users Table
-                                        createElement('div', { key: 'admin-list', className: "bg-white rounded-lg shadow-md" },
-                                            createElement('div', { className: "px-6 py-4 border-b border-gray-200" },
-                                                createElement('h3', { className: "text-lg font-semibold text-gray-900" }, "Current Admin Users")
-                                            ),
-                                            createElement('div', { className: "overflow-x-auto" },
-                                                createElement('table', { className: "w-full" },
-                                                    createElement('thead', { className: "bg-gray-50" },
-                                                        createElement('tr', null,
-                                                            createElement('th', { className: "px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider" }, "Name"),
-                                                            createElement('th', { className: "px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider" }, "Email"),
-                                                            createElement('th', { className: "px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider" }, "Role"),
-                                                            createElement('th', { className: "px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider" }, "Added Date"),
-                                                            createElement('th', { className: "px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider" }, "Actions")
-                                                        )
-                                                    ),
-                                                    createElement('tbody', { className: "bg-white divide-y divide-gray-200" },
-                                                        adminUsers.map(function(admin) {
-                                                            return createElement('tr', { key: admin.id, className: "hover:bg-gray-50" },
-                                                                createElement('td', { className: "px-6 py-4 whitespace-nowrap" },
-                                                                    createElement('div', { className: "flex items-center" },
-                                                                        createElement('div', { className: "h-8 w-8 bg-blue-100 rounded-full flex items-center justify-center mr-3" },
-                                                                            createElement('span', { className: "text-blue-600 font-medium text-sm" },
-                                                                                admin.name.split(' ').map(function(n) { return n[0]; }).join('').toUpperCase()
-                                                                            )
-                                                                        ),
-                                                                        createElement('span', { className: "text-sm font-medium text-gray-900" }, admin.name)
-                                                                    )
-                                                                ),
-                                                                createElement('td', { className: "px-6 py-4 whitespace-nowrap text-sm text-gray-500" }, admin.email),
-                                                                createElement('td', { className: "px-6 py-4 whitespace-nowrap" },
-                                                                    createElement('span', { 
-                                                                        className: "inline-flex px-2 py-1 text-xs font-semibold rounded-full " + (
-                                                                            admin.role === 'Super Admin' 
-                                                                                ? 'bg-purple-100 text-purple-800'
-                                                                                : admin.role === 'Admin'
-                                                                                ? 'bg-blue-100 text-blue-800'
-                                                                                : 'bg-green-100 text-green-800'
-                                                                        )
-                                                                    }, admin.role)
-                                                                ),
-                                                                createElement('td', { className: "px-6 py-4 whitespace-nowrap text-sm text-gray-500" },
-                                                                    new Date(admin.addedDate).toLocaleDateString()
-                                                                ),
-                                                                createElement('td', { className: "px-6 py-4 whitespace-nowrap text-sm" },
-                                                                    admin.role !== 'Super Admin' && createElement('button', {
-                                                                        onClick: function() { removeAdminUser(admin.id); },
-                                                                        className: "text-red-600 hover:text-red-800 flex items-center"
-                                                                    },
-                                                                        createElement(Trash2, { className: "h-4 w-4 mr-1" }),
-                                                                        "Remove"
-                                                                    )
-                                                                )
-                                                            );
-                                                        })
-                                                    )
-                                                )
-                                            )
-                                        )
-                                    ] : [
-                                        // Email History
-                                        createElement('div', { key: 'email-stats', className: "grid grid-cols-1 md:grid-cols-3 gap-6 mb-8" },
-                                            createElement('div', { className: "bg-green-50 border border-green-200 rounded-lg p-6" },
-                                                createElement('div', { className: "flex items-center" },
-                                                    createElement(Send, { className: "h-8 w-8 text-green-600 mr-3" }),
-                                                    createElement('div', null,
-                                                        createElement('p', { className: "text-2xl font-bold text-green-900" }, emailHistory.length),
-                                                        createElement('p', { className: "text-green-700" }, "Total Emails Sent")
-                                                    )
-                                                )
-                                            ),
-                                            createElement('div', { className: "bg-blue-50 border border-blue-200 rounded-lg p-6" },
-                                                createElement('div', { className: "flex items-center" },
-                                                    createElement(Check, { className: "h-8 w-8 text-blue-600 mr-3" }),
-                                                    createElement('div', null,
-                                                        createElement('p', { className: "text-2xl font-bold text-blue-900" },
-                                                            emailHistory.filter(function(e) { return e.type === 'approval'; }).length
-                                                        ),
-                                                        createElement('p', { className: "text-blue-700" }, "Approval Emails")
-                                                    )
-                                                )
-                                            ),
-                                            createElement('div', { className: "bg-red-50 border border-red-200 rounded-lg p-6" },
-                                                createElement('div', { className: "flex items-center" },
-                                                    createElement(X, { className: "h-8 w-8 text-red-600 mr-3" }),
-                                                    createElement('div', null,
-                                                        createElement('p', { className: "text-2xl font-bold text-red-900" },
-                                                            emailHistory.filter(function(e) { return e.type === 'rejection'; }).length
-                                                        ),
-                                                        createElement('p', { className: "text-red-700" }, "Rejection Emails")
-                                                    )
-                                                )
-                                            )
-                                        ),
-
-                                        // Email History List
-                                        createElement('div', { key: 'email-list', className: "bg-white rounded-lg shadow-md" },
-                                            createElement('div', { className: "px-6 py-4 border-b border-gray-200" },
-                                                createElement('h3', { className: "text-lg font-semibold text-gray-900" }, "Email History")
-                                            ),
-                                            createElement('div', { className: "p-6" },
-                                                emailHistory.length > 0 ? 
-                                                    createElement('div', { className: "space-y-4" },
-                                                        emailHistory.map(function(email) {
-                                                            return createElement('div', { 
-                                                                key: email.id, 
-                                                                className: "border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow" 
-                                                            },
-                                                                createElement('div', { className: "flex justify-between items-start" },
-                                                                    createElement('div', { className: "flex-1" },
-                                                                        createElement('div', { className: "flex items-center space-x-3 mb-2" },
-                                                                            createElement('span', { 
-                                                                                className: "inline-flex px-2 py-1 text-xs font-semibold rounded-full " + (
-                                                                                    email.type === 'approval' 
-                                                                                        ? 'bg-green-100 text-green-800'
-                                                                                        : email.type === 'rejection'
-                                                                                        ? 'bg-red-100 text-red-800'
-                                                                                        : 'bg-blue-100 text-blue-800'
-                                                                                )
-                                                                            }, email.type),
-                                                                            createElement('span', { className: "text-sm text-gray-500" },
-                                                                                new Date(email.sentAt).toLocaleString()
-                                                                            )
-                                                                        ),
-                                                                        createElement('h4', { className: "font-medium text-gray-900 mb-1" }, email.subject),
-                                                                        createElement('p', { className: "text-sm text-gray-600" }, "To: " + email.to)
-                                                                    ),
-                                                                    createElement('button', {
-                                                                        onClick: function() { setShowEmailPreview(email); },
-                                                                        className: "flex items-center px-3 py-1 text-sm text-blue-600 hover:text-blue-800 hover:bg-blue-50 rounded transition-colors"
-                                                                    },
-                                                                        createElement(Eye, { className: "h-4 w-4 mr-1" }),
-                                                                        "Preview"
-                                                                    )
-                                                                )
-                                                            );
-                                                        })
-                                                    ) :
-                                                    createElement('div', { className: "text-center py-12" },
-                                                        createElement(Send, { className: "h-12 w-12 text-gray-400 mx-auto mb-4" }),
-                                                        createElement('p', { className: "text-gray-500" }, "No emails sent yet"),
-                                                        createElement('p', { className: "text-sm text-gray-400 mt-1" }, 
-                                                            "Email notifications will appear here when dance events are approved/rejected or admins are added"
-                                                        )
-                                                    )
-                                            )
-                                        )
-                                    ]
-                                )
+            return React.createElement('div', { className: "min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50" },
+                // Header
+                React.createElement('header', { className: "bg-white/80 backdrop-blur-md border-b border-gray-200 sticky top-0 z-10" },
+                    React.createElement('div', { className: "max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4" },
+                        React.createElement('div', { className: "flex items-center justify-between" },
+                            React.createElement('div', { className: "flex items-center space-x-3" },
+                                React.createElement(Calendar, { className: "h-8 w-8 text-blue-600" }),
+                                React.createElement('h1', { className: "text-2xl font-bold text-gray-900" }, "Dallas Dance Events")
                             ),
-
-                        // Footer
-                        createElement('footer', { className: "bg-gray-900 text-white py-12 px-4 sm:px-6 lg:px-8" },
-                            createElement('div', { className: "max-w-4xl mx-auto text-center" },
-                                createElement('div', { className: "flex items-center justify-center space-x-3 mb-4" },
-                                    createElement(Calendar, { className: "h-6 w-6" }),
-                                    createElement('span', { className: "text-xl font-semibold" }, "Dallas Dance Events")
-                                ),
-                                createElement('p', { className: "text-gray-400" },
-                                    "Bringing the Dallas dance community together, one event at a time."
-                                )
-                            )
-                        ),
-
-                        // Comment Modal
-                        showCommentModal && createElement('div', { 
-                            className: "fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4",
-                            onClick: function(e) {
-                                if (e.target === e.currentTarget) {
-                                    setShowCommentModal(null);
-                                }
-                            }
-                        },
-                            createElement('div', { className: "bg-white rounded-lg max-w-md w-full p-6" },
-                                createElement('h3', { className: "text-lg font-semibold mb-4" },
-                                    showCommentModal.action === 'approve' ? 'Approve Event' : 'Reject Event'
+                            React.createElement('div', { className: "flex items-center space-x-4" },
+                                currentView === 'public' && React.createElement('nav', { className: "hidden md:flex space-x-6" },
+                                    React.createElement('button', { 
+                                        onClick: () => scrollToSection('calendar'),
+                                        className: "text-gray-600 hover:text-blue-600 transition-colors"
+                                    }, "View Calendar"),
+                                    React.createElement('button', { 
+                                        onClick: () => scrollToSection('submit'),
+                                        className: "text-gray-600 hover:text-blue-600 transition-colors"
+                                    }, "Submit Event")
                                 ),
                                 
-                                createElement('div', { className: "mb-4" },
-                                    createElement('label', { className: "flex items-center text-sm font-medium text-gray-700 mb-2" },
-                                        createElement(MessageSquare, { className: "h-4 w-4 mr-2" }),
-                                        showCommentModal.action === 'approve' ? 'Optional comment' : 'Reason for rejection*'
+                                isAdminAuthenticated ? React.createElement('div', { className: "flex items-center space-x-3" },
+                                    React.createElement('button', {
+                                        onClick: () => setCurrentView(currentView === 'admin' ? 'public' : 'admin'),
+                                        className: "flex items-center space-x-2 px-4 py-2 rounded-lg font-medium transition-all " + 
+                                            (currentView === 'admin' ? 'bg-red-100 text-red-700' : 'bg-blue-100 text-blue-700')
+                                    },
+                                        React.createElement(Shield, { className: "h-4 w-4" }),
+                                        React.createElement('span', null, currentView === 'admin' ? 'Exit Admin' : 'Admin')
                                     ),
-                                    createElement('textarea', {
-                                        value: adminComments[showCommentModal.eventId] || '',
-                                        onChange: function(e) {
-                                            const newComments = Object.assign({}, adminComments);
-                                            newComments[showCommentModal.eventId] = e.target.value;
-                                            setAdminComments(newComments);
-                                        },
-                                        placeholder: showCommentModal.action === 'approve' 
-                                            ? 'Add any additional notes...' 
-                                            : 'Please explain why this event is being rejected...',
-                                        className: "w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none",
-                                        rows: 4
-                                    })
-                                ),
-                                
-                                createElement('div', { className: "flex gap-3" },
-                                    createElement('button', {
-                                        onClick: submitAdminAction,
-                                        className: "flex-1 px-4 py-2 text-white rounded-lg font-medium transition-colors " + (
-                                            showCommentModal.action === 'approve' 
-                                                ? 'bg-green-600 hover:bg-green-700' 
-                                                : 'bg-red-600 hover:bg-red-700'
-                                        )
-                                    }, showCommentModal.action === 'approve' ? 'Approve Event' : 'Reject Event'),
-                                    createElement('button', {
-                                        onClick: function() { setShowCommentModal(null); },
-                                        className: "flex-1 px-4 py-2 bg-gray-300 text-gray-700 rounded-lg font-medium hover:bg-gray-400 transition-colors"
-                                    }, "Cancel")
-                                )
-                            )
-                        ),
-
-                        // Email Preview Modal
-                        showEmailPreview && createElement('div', { 
-                            className: "fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4",
-                            onClick: function(e) {
-                                if (e.target === e.currentTarget) {
-                                    setShowEmailPreview(null);
-                                }
-                            }
-                        },
-                            createElement('div', { className: "bg-white rounded-lg max-w-2xl w-full max-h-[80vh] overflow-y-auto" },
-                                createElement('div', { className: "p-6 border-b border-gray-200" },
-                                    createElement('div', { className: "flex justify-between items-start" },
-                                        createElement('h3', { className: "text-lg font-semibold text-gray-900" }, "Email Preview"),
-                                        createElement('button', {
-                                            onClick: function() { setShowEmailPreview(null); },
-                                            className: "text-gray-400 hover:text-gray-600 transition-colors"
-                                        },
-                                            createElement(X, { className: "h-5 w-5" })
-                                        )
-                                    )
-                                ),
-                                
-                                createElement('div', { className: "p-6" },
-                                    createElement('div', { className: "mb-4" },
-                                        createElement('div', { className: "flex items-center space-x-2 mb-2" },
-                                            createElement('span', { className: "text-sm font-medium text-gray-700" }, "Type:"),
-                                            createElement('span', { 
-                                                className: "inline-flex px-2 py-1 text-xs font-semibold rounded-full " + (
-                                                    showEmailPreview.type === 'approval' 
-                                                        ? 'bg-green-100 text-green-800'
-                                                        : showEmailPreview.type === 'rejection'
-                                                        ? 'bg-red-100 text-red-800'
-                                                        : 'bg-blue-100 text-blue-800'
-                                                )
-                                            }, showEmailPreview.type)
-                                        ),
-                                        createElement('div', { className: "mb-2" },
-                                            createElement('span', { className: "text-sm font-medium text-gray-700" }, "To: "),
-                                            createElement('span', { className: "text-sm text-gray-900" }, showEmailPreview.to)
-                                        ),
-                                        createElement('div', { className: "mb-2" },
-                                            createElement('span', { className: "text-sm font-medium text-gray-700" }, "Sent: "),
-                                            createElement('span', { className: "text-sm text-gray-900" },
-                                                new Date(showEmailPreview.sentAt).toLocaleString()
-                                            )
-                                        ),
-                                        createElement('div', { className: "mb-4" },
-                                            createElement('span', { className: "text-sm font-medium text-gray-700" }, "Subject: "),
-                                            createElement('span', { className: "text-sm text-gray-900" }, showEmailPreview.subject)
-                                        )
-                                    ),
-                                    
-                                    createElement('div', { className: "bg-gray-50 border border-gray-200 rounded-lg p-4" },
-                                        createElement('h4', { className: "text-sm font-medium text-gray-700 mb-2" }, "Email Content:"),
-                                        createElement('div', { className: "text-sm text-gray-900 whitespace-pre-wrap font-mono" },
-                                            showEmailPreview.body
-                                        )
-                                    )
-                                )
-                            )
-                        ),
-
-                        // Event Detail Modal
-                        selectedEvent && createElement('div', { 
-                            className: "fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4",
-                            onClick: function(e) {
-                                if (e.target === e.currentTarget) {
-                                    setSelectedEvent(null);
-                                }
-                            }
-                        },
-                            createElement('div', { className: "bg-white rounded-lg max-w-md w-full" },
-                                createElement('div', { className: "p-6 border-b border-gray-200" },
-                                    createElement('div', { className: "flex justify-between items-start" },
-                                        createElement('h3', { className: "text-xl font-bold text-gray-900" }, selectedEvent.eventName),
-                                        createElement('button', {
-                                            onClick: function() { setSelectedEvent(null); },
-                                            className: "text-gray-400 hover:text-gray-600 transition-colors"
-                                        },
-                                            createElement(X, { className: "h-5 w-5" })
-                                        )
-                                    )
-                                ),
-                                
-                                createElement('div', { className: "p-6" },
-                                    createElement('div', { className: "space-y-4" },
-                                        createElement('div', { className: "flex items-start space-x-3" },
-                                            createElement(MapPin, { className: "h-5 w-5 text-gray-400 mt-0.5" }),
-                                            createElement('div', null,
-                                                createElement('p', { className: "text-sm font-medium text-gray-900" }, "Location"),
-                                                createElement('p', { className: "text-sm text-gray-600" }, selectedEvent.location)
-                                            )
-                                        ),
-                                        
-                                        createElement('div', { className: "flex items-start space-x-3" },
-                                            createElement(Calendar, { className: "h-5 w-5 text-gray-400 mt-0.5" }),
-                                            createElement('div', null,
-                                                createElement('p', { className: "text-sm font-medium text-gray-900" }, "Date & Time"),
-                                                createElement('p', { className: "text-sm text-gray-600" },
-                                                    formatDate(selectedEvent.date) + ' at ' + formatTime(selectedEvent.time)
-                                                )
-                                            )
-                                        ),
-                                        
-                                        createElement('div', { className: "flex items-start space-x-3" },
-                                            createElement(Repeat, { className: "h-5 w-5 text-gray-400 mt-0.5" }),
-                                            createElement('div', null,
-                                                createElement('p', { className: "text-sm font-medium text-gray-900" }, "Frequency"),
-                                                createElement('p', { className: "text-sm text-gray-600 capitalize" }, selectedEvent.frequency)
-                                            )
-                                        ),
-                                        
-                                        createElement('div', { className: "flex items-start space-x-3" },
-                                            createElement(User, { className: "h-5 w-5 text-gray-400 mt-0.5" }),
-                                            createElement('div', null,
-                                                createElement('p', { className: "text-sm font-medium text-gray-900" }, "Organizer"),
-                                                createElement('p', { className: "text-sm text-gray-600" }, selectedEvent.organizerName)
-                                            )
-                                        ),
-                                        
-                                        selectedEvent.socialMediaAccount && createElement('div', { className: "flex items-start space-x-3" },
-                                            createElement(MessageSquare, { className: "h-5 w-5 text-gray-400 mt-0.5" }),
-                                            createElement('div', null,
-                                                createElement('p', { className: "text-sm font-medium text-gray-900" }, "Event Updates"),
-                                                createElement('p', { className: "text-sm text-gray-600" },
-                                                    "For more up to date information on the event, please go to ",
-                                                    createElement('a', {
-                                                        href: selectedEvent.socialMediaAccount.startsWith('@') 
-                                                            ? 'https://twitter.com/' + selectedEvent.socialMediaAccount.substring(1)
-                                                            : selectedEvent.socialMediaAccount.startsWith('http') 
-                                                            ? selectedEvent.socialMediaAccount 
-                                                            : 'https://' + selectedEvent.socialMediaAccount,
-                                                        target: "_blank",
-                                                        rel: "noopener noreferrer",
-                                                        className: "text-blue-600 hover:text-blue-800 underline"
-                                                    }, selectedEvent.socialMediaAccount)
-                                                )
-                                            )
-                                        )
-                                    ),
-                                    
-                                    createElement('div', { className: "mt-6 pt-4 border-t border-gray-200" },
-                                        createElement('button', {
-                                            onClick: function() { setSelectedEvent(null); },
-                                            className: "w-full bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors font-medium"
-                                        }, "Close")
-                                    )
-                                )
-                            )
-                        ),
-
-                        // Admin Login Modal
-                        showAdminLogin && createElement('div', { 
-                            className: "fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4",
-                            onClick: function(e) {
-                                if (e.target === e.currentTarget) {
-                                    setShowAdminLogin(false);
-                                    setAdminLoginEmail('');
-                                }
-                            }
-                        },
-                            createElement('div', { className: "bg-white rounded-lg max-w-md w-full p-6" },
-                                createElement('h3', { className: "text-lg font-semibold mb-4 flex items-center" },
-                                    createElement(Shield, { className: "h-5 w-5 mr-2 text-blue-600" }),
-                                    "Admin Login"
-                                ),
-                                
-                                createElement('div', { className: "mb-4" },
-                                    createElement('label', { className: "block text-sm font-medium text-gray-700 mb-2" },
-                                        "Admin Email Address"
-                                    ),
-                                    createElement('input', {
-                                        type: "email",
-                                        value: adminLoginEmail,
-                                        onChange: function(e) { setAdminLoginEmail(e.target.value); },
-                                        placeholder: "Enter your admin email",
-                                        className: "w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent",
-                                        onKeyPress: function(e) { 
-                                            if (e.key === 'Enter') {
-                                                handleAdminLogin(); 
-                                            }
-                                        }
-                                    }),
-                                    createElement('p', { className: "text-xs text-gray-500 mt-1" },
-                                        "Only registered admin users can access the dashboard"
-                                    )
-                                ),
-                                
-                                createElement('div', { className: "flex gap-3" },
-                                    createElement('button', {
-                                        onClick: handleAdminLogin,
-                                        className: "flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors"
-                                    }, "Login"),
-                                    createElement('button', {
-                                        onClick: function() {
-                                            setShowAdminLogin(false);
-                                            setAdminLoginEmail('');
-                                        },
-                                        className: "flex-1 px-4 py-2 bg-gray-300 text-gray-700 rounded-lg font-medium hover:bg-gray-400 transition-colors"
-                                    }, "Cancel")
-                                ),
-                                
-                                createElement('div', { className: "mt-4 p-3 bg-blue-50 rounded-lg" },
-                                    createElement('p', { className: "text-xs text-blue-700" },
-                                        createElement('strong', null, "Demo Admin Emails:"),
-                                        createElement('br'),
-                                        "admin@example.com (Super Admin)",
-                                        createElement('br'),
-                                        "arishpardiwalla@gmail.com (Super Admin)"
-                                    )
+                                    React.createElement('button', {
+                                        onClick: handleAdminLogout,
+                                        className: "text-sm text-gray-500 hover:text-gray-700"
+                                    }, "Logout")
+                                ) : React.createElement('button', {
+                                    onClick: () => setShowAdminLogin(true),
+                                    className: "text-sm text-gray-600 hover:text-blue-600 transition-colors flex items-center space-x-1"
+                                },
+                                    React.createElement(Shield, { className: "h-4 w-4" }),
+                                    React.createElement('span', null, "Admin Login")
                                 )
                             )
                         )
-                    );
-                }
+                    )
+                ),
 
-                // Render the app
-                const container = document.getElementById('root');
-                if (container && createRoot) {
-                    const root = createRoot(container);
-                    root.render(React.createElement(EventCalendarLanding));
-                } else {
-                    // Fallback for older React versions
-                    ReactDOM.render(React.createElement(EventCalendarLanding), container);
-                }
+                // Main Content
+                currentView === 'public' ? [
+                    // Hero Section
+                    React.createElement('section', { key: 'hero', className: "relative py-20 px-4 sm:px-6 lg:px-8" },
+                        React.createElement('div', { className: "max-w-4xl mx-auto text-center" },
+                            React.createElement('h2', { className: "text-5xl font-bold text-gray-900 mb-6 leading-tight" },
+                                "Discover & Share ",
+                                React.createElement('span', { className: "text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-purple-600" }, "Dallas Dance Events")
+                            ),
+                            React.createElement('p', { className: "text-xl text-gray-600 mb-8 max-w-2xl mx-auto" },
+                                "Join our vibrant dance community calendar. Submit your dance events for approval and discover what's happening in Dallas."
+                            ),
+                            React.createElement('div', { className: "flex flex-col sm:flex-row gap-4 justify-center" },
+                                React.createElement('button', {
+                                    onClick: () => scrollToSection('submit'),
+                                    className: "bg-gradient-to-r from-blue-600 to-purple-600 text-white px-8 py-3 rounded-lg font-medium hover:from-blue-700 hover:to-purple-700 transition-all duration-200 shadow-lg hover:shadow-xl"
+                                }, "Submit an Event"),
+                                React.createElement('button', {
+                                    onClick: () => scrollToSection('calendar'),
+                                    className: "bg-white text-gray-700 px-8 py-3 rounded-lg font-medium border border-gray-300 hover:bg-gray-50 transition-all duration-200 shadow-md hover:shadow-lg"
+                                }, "View Calendar")
+                            )
+                        )
+                    ),
 
-            } catch (error) {
-                console.error('Error loading application:', error);
-                
-                const container = document.getElementById('root');
-                if (container) {
-                    container.innerHTML = `
-                        <div class="error">
-                            <h2>Application Failed to Load</h2>
-                            <p><strong>Error:</strong> ${error.message}</p>
-                            <p>Please refresh the page or check your internet connection.</p>
-                            <button onclick="window.location.reload()" style="background: #3b82f6; color: white; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; margin-top: 10px;">
-                                Reload Page
-                            </button>
-                            <details style="margin-top: 20px; text-align: left;">
-                                <summary style="cursor: pointer;">Technical Details</summary>
-                                <pre style="margin-top: 10px; padding: 10px; background: #f5f5f5; border-radius: 4px; font-size: 12px; overflow: auto;">${error.stack || error.message}</pre>
-                            </details>
-                        </div>
-                    `;
-                }
-            }
-        })();
+                    // Calendar Section
+                    React.createElement('section', { key: 'calendar', id: 'calendar', className: "py-16 px-4 sm:px-6 lg:px-8 bg-white/50" },
+                        React.createElement('div', { className: "max-w-6xl mx-auto" },
+                            React.createElement('div', { className: "text-center mb-12" },
+                                React.createElement('h3', { className: "text-3xl font-bold text-gray-900 mb-4" }, 
+                                    currentMonth.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })
+                                ),
+                                React.createElement('p', { className: "text-gray-600" }, "Dallas Dance Events Calendar")
+                            ),
+                            
+                            // Simple Calendar Grid
+                            React.createElement('div', { className: "bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden" },
+                                React.createElement('div', { className: "bg-gray-50 border-b border-gray-200" },
+                                    React.createElement('div', { className: "grid grid-cols-7 gap-0" },
+                                        ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day =>
+                                            React.createElement('div', { key: day, className: "p-4 text-center" },
+                                                React.createElement('span', { className: "text-sm font-semibold text-gray-900" }, day)
+                                            )
+                                        )
+                                    )
+                                ),
+                                React.createElement('div', { className: "grid grid-cols-7 gap-0 bg-white" },
+                                    getDaysInMonth(currentMonth).map((date, index) => {
+                                        const dayEvents = getEventsForDate(date);
+                                        return React.createElement('div', {
+                                            key: index,
+                                            className: "min-h-[120px] border-r border-b border-gray-100 p-2 " +
+                                                (date ? 'bg-white hover:bg-gray-50' : 'bg-gray-50') +
+                                                (isToday(date) ? ' bg-blue-50' : '')
+                                        },
+                                            date && [
+                                                React.createElement('div', { key: 'date', className: "mb-2" },
+                                                    React.createElement('span', { 
+                                                        className: "text-sm font-medium " + (
+                                                            isToday(date) 
+                                                                ? 'bg-blue-600 text-white w-6 h-6 rounded-full flex items-center justify-center text-xs' 
+                                                                : 'text-gray-900'
+                                                        )
+                                                    }, date.getDate())
+                                                ),
+                                                React.createElement('div', { key: 'events', className: "space-y-1" },
+                                                    dayEvents.slice(0, 2).map(event =>
+                                                        React.createElement('div', {
+                                                            key: event.id,
+                                                            onClick: () => setSelectedEvent(event),
+                                                            className: "bg-blue-100 text-blue-900 text-xs px-2 py-1 rounded cursor-pointer hover:bg-blue-200 transition-all border border-blue-200 transform hover:scale-105"
+                                                        },
+                                                            React.createElement('div', { className: "font-medium truncate" }, event.eventName),
+                                                            React.createElement('div', { className: "text-blue-700" }, formatTime(event.time))
+                                                        )
+                                                    )
+                                                )
+                                            ]
+                                        );
+                                    })
+                                )
+                            )
+                        )
+                    ),
+
+                    // Event Submission Form
+                    React.createElement('section', { key: 'submit', id: 'submit', className: "py-16 px-4 sm:px-6 lg:px-8" },
+                        React.createElement('div', { className: "max-w-2xl mx-auto" },
+                            React.createElement('div', { className: "text-center mb-12" },
+                                React.createElement('h3', { className: "text-3xl font-bold text-gray-900 mb-4" }, "Submit Your Dance Event"),
+                                React.createElement('p', { className: "text-gray-600" }, "Share your dance event with the Dallas community. All submissions require admin approval.")
+                            ),
+
+                            React.createElement('div', { className: "bg-white rounded-2xl shadow-xl p-8 border border-gray-100" },
+                                React.createElement('div', { className: "space-y-6" },
+                                    React.createElement('div', null,
+                                        React.createElement('label', { className: "flex items-center text-sm font-medium text-gray-700 mb-2" },
+                                            React.createElement(Calendar, { className: "h-4 w-4 mr-2 text-blue-600" }),
+                                            "Event Name *"
+                                        ),
+                                        React.createElement('input', {
+                                            type: "text",
+                                            name: "eventName",
+                                            value: formData.eventName,
+                                            onChange: handleInputChange,
+                                            className: "w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent",
+                                            placeholder: "Enter your event name"
+                                        })
+                                    ),
+
+                                    React.createElement('div', null,
+                                        React.createElement('label', { className: "flex items-center text-sm font-medium text-gray-700 mb-2" },
+                                            React.createElement(MapPin, { className: "h-4 w-4 mr-2 text-blue-600" }),
+                                            "Location *"
+                                        ),
+                                        React.createElement('input', {
+                                            type: "text",
+                                            name: "location",
+                                            value: formData.location,
+                                            onChange: handleInputChange,
+                                            className: "w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent",
+                                            placeholder: "Event location or address"
+                                        })
+                                    ),
+
+                                    React.createElement('div', { className: "grid grid-cols-1 md:grid-cols-2 gap-6" },
+                                        React.createElement('div', null,
+                                            React.createElement('label', { className: "flex items-center text-sm font-medium text-gray-700 mb-2" },
+                                                React.createElement(Calendar, { className: "h-4 w-4 mr-2 text-blue-600" }),
+                                                "Date *"
+                                            ),
+                                            React.createElement('input', {
+                                                type: "date",
+                                                name: "date",
+                                                value: formData.date,
+                                                onChange: handleInputChange,
+                                                className: "w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                            })
+                                        ),
+                                        React.createElement('div', null,
+                                            React.createElement('label', { className: "flex items-center text-sm font-medium text-gray-700 mb-2" },
+                                                React.createElement(Clock, { className: "h-4 w-4 mr-2 text-blue-600" }),
+                                                "Time *"
+                                            ),
+                                            React.createElement('input', {
+                                                type: "time",
+                                                name: "time",
+                                                value: formData.time,
+                                                onChange: handleInputChange,
+                                                className: "w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                            })
+                                        )
+                                    ),
+
+                                    React.createElement('div', null,
+                                        React.createElement('label', { className: "flex items-center text-sm font-medium text-gray-700 mb-2" },
+                                            React.createElement(User, { className: "h-4 w-4 mr-2 text-blue-600" }),
+                                            "Organizer Name *"
+                                        ),
+                                        React.createElement('input', {
+                                            type: "text",
+                                            name: "organizerName",
+                                            value: formData.organizerName,
+                                            onChange: handleInputChange,
+                                            className: "w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent",
+                                            placeholder: "Your name"
+                                        })
+                                    ),
+
+                                    React.createElement('div', null,
+                                        React.createElement('label', { className: "flex items-center text-sm font-medium text-gray-700 mb-2" },
+                                            React.createElement(Mail, { className: "h-4 w-4 mr-2 text-blue-600" }),
+                                            "Contact Email *"
+                                        ),
+                                        React.createElement('input', {
+                                            type: "email",
+                                            name: "organizerEmail",
+                                            value: formData.organizerEmail,
+                                            onChange: handleInputChange,
+                                            className: "w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent",
+                                            placeholder: "your.email@example.com"
+                                        })
+                                    ),
+
+                                    React.createElement('button', {
+                                        onClick: handleSubmit,
+                                        className: "w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white py-3 px-6 rounded-lg font-medium hover:from-blue-700 hover:to-purple-700 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
+                                    }, "Submit Event for Approval")
+                                )
+                            )
+                        )
+                    )
+                ] : [
+                    // Admin Dashboard
+                    React.createElement('section', { key: 'admin', className: "py-8 px-4 sm:px-6 lg:px-8 min-h-screen bg-gray-50" },
+                        React.createElement('div', { className: "max-w-7xl mx-auto" },
+                            React.createElement('div', { className: "mb-8" },
+                                React.createElement('h2', { className: "text-3xl font-bold text-gray-900 mb-2" }, "Admin Dashboard"),
+                                React.createElement('p', { className: "text-gray-600" }, "Review and manage dance events")
+                            ),
+
+                            // Stats
+                            React.createElement('div', { className: "grid grid-cols-1 md:grid-cols-2 gap-6 mb-8" },
+                                React.createElement('div', { className: "bg-yellow-50 border border-yellow-200 rounded-lg p-6" },
+                                    React.createElement('div', { className: "flex items-center" },
+                                        React.createElement(Clock, { className: "h-8 w-8 text-yellow-600 mr-3" }),
+                                        React.createElement('div', null,
+                                            React.createElement('p', { className: "text-2xl font-bold text-yellow-900" }, pendingEvents.length),
+                                            React.createElement('p', { className: "text-yellow-700" }, "Pending Events")
+                                        )
+                                    )
+                                ),
+                                React.createElement('div', { className: "bg-green-50 border border-green-200 rounded-lg p-6" },
+                                    React.createElement('div', { className: "flex items-center" },
+                                        React.createElement(Check, { className: "h-8 w-8 text-green-600 mr-3" }),
+                                        React.createElement('div', null,
+                                            React.createElement('p', { className: "text-2xl font-bold text-green-900" }, approvedEvents.length),
+                                            React.createElement('p', { className: "text-green-700" }, "Approved Events")
+                                        )
+                                    )
+                                )
+                            ),
+
+                            // Pending Events
+                            React.createElement('div', { className: "bg-white rounded-lg shadow-md mb-8" },
+                                React.createElement('div', { className: "px-6 py-4 border-b border-gray-200" },
+                                    React.createElement('h3', { className: "text-lg font-semibold text-gray-900" }, "Pending Events")
+                                ),
+                                React.createElement('div', { className: "p-6" },
+                                    pendingEvents.length > 0 ? 
+                                        React.createElement('div', { className: "space-y-6" },
+                                            pendingEvents.map(event =>
+                                                React.createElement('div', { 
+                                                    key: event.id, 
+                                                    className: "border border-gray-200 rounded-lg p-6 hover:shadow-md transition-shadow" 
+                                                },
+                                                    React.createElement('h4', { className: "text-xl font-bold text-gray-900 mb-4" }, event.eventName),
+                                                    React.createElement('div', { className: "grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-gray-600 mb-4" },
+                                                        React.createElement('div', { className: "flex items-center" },
+                                                            React.createElement(MapPin, { className: "h-4 w-4 mr-2" }),
+                                                            event.location
+                                                        ),
+                                                        React.createElement('div', { className: "flex items-center" },
+                                                            React.createElement(Calendar, { className: "h-4 w-4 mr-2" }),
+                                                            formatDate(event.date)
+                                                        ),
+                                                        React.createElement('div', { className: "flex items-center" },
+                                                            React.createElement(Clock, { className: "h-4 w-4 mr-2" }),
+                                                            formatTime(event.time)
+                                                        ),
+                                                        React.createElement('div', { className: "flex items-center" },
+                                                            React.createElement(User, { className: "h-4 w-4 mr-2" }),
+                                                            event.organizerName
+                                                        )
+                                                    ),
+                                                    React.createElement('div', { className: "flex gap-3 pt-4 border-t border-gray-100" },
+                                                        React.createElement('button', {
+                                                            onClick: () => approveEvent(event.id),
+                                                            className: "flex items-center px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+                                                        },
+                                                            React.createElement(Check, { className: "h-4 w-4 mr-2" }),
+                                                            "Approve"
+                                                        ),
+                                                        React.createElement('button', {
+                                                            onClick: () => rejectEvent(event.id),
+                                                            className: "flex items-center px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+                                                        },
+                                                            React.createElement(X, { className: "h-4 w-4 mr-2" }),
+                                                            "Reject"
+                                                        )
+                                                    )
+                                                )
+                                            )
+                                        ) :
+                                        React.createElement('div', { className: "text-center py-12" },
+                                            React.createElement(Clock, { className: "h-12 w-12 text-gray-400 mx-auto mb-4" }),
+                                            React.createElement('p', { className: "text-gray-500" }, "No pending events")
+                                        )
+                                )
+                            ),
+
+                            // Approved Events
+                            React.createElement('div', { className: "bg-white rounded-lg shadow-md" },
+                                React.createElement('div', { className: "px-6 py-4 border-b border-gray-200" },
+                                    React.createElement('h3', { className: "text-lg font-semibold text-gray-900" }, "Approved Events")
+                                ),
+                                React.createElement('div', { className: "p-6" },
+                                    approvedEvents.length > 0 ? 
+                                        React.createElement('div', { className: "space-y-6" },
+                                            approvedEvents.map(event =>
+                                                React.createElement('div', { 
+                                                    key: event.id, 
+                                                    className: "border border-gray-200 rounded-lg p-6 hover:shadow-md transition-shadow" 
+                                                },
+                                                    React.createElement('div', { className: "flex justify-between items-start" },
+                                                        React.createElement('div', { className: "flex-1" },
+                                                            React.createElement('h4', { className: "text-xl font-bold text-gray-900 mb-4" }, event.eventName),
+                                                            React.createElement('div', { className: "grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-gray-600" },
+                                                                React.createElement('div', { className: "flex items-center" },
+                                                                    React.createElement(MapPin, { className: "h-4 w-4 mr-2" }),
+                                                                    event.location
+                                                                ),
+                                                                React.createElement('div', { className: "flex items-center" },
+                                                                    React.createElement(Calendar, { className: "h-4 w-4 mr-2" }),
+                                                                    formatDate(event.date)
+                                                                ),
+                                                                React.createElement('div', { className: "flex items-center" },
+                                                                    React.createElement(Clock, { className: "h-4 w-4 mr-2" }),
+                                                                    formatTime(event.time)
+                                                                ),
+                                                                React.createElement('div', { className: "flex items-center" },
+                                                                    React.createElement(User, { className: "h-4 w-4 mr-2" }),
+                                                                    event.organizerName
+                                                                )
+                                                            )
+                                                        ),
+                                                        React.createElement('button', {
+                                                            onClick: () => removeEvent(event.id),
+                                                            className: "flex items-center px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors text-sm"
+                                                        },
+                                                            React.createElement(Trash, { className: "h-4 w-4 mr-2" }),
+                                                            "Remove"
+                                                        )
+                                                    )
+                                                )
+                                            )
+                                        ) :
+                                        React.createElement('div', { className: "text-center py-12" },
+                                            React.createElement(Check, { className: "h-12 w-12 text-gray-400 mx-auto mb-4" }),
+                                            React.createElement('p', { className: "text-gray-500" }, "No approved events")
+                                        )
+                                )
+                            )
+                        )
+                    )
+                ],
+
+                // Admin Login Modal
+                showAdminLogin && React.createElement('div', { 
+                    className: "fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4",
+                    onClick: (e) => {
+                        if (e.target === e.currentTarget) {
+                            setShowAdminLogin(false);
+                            setAdminLoginEmail('');
+                        }
+                    }
+                },
+                    React.createElement('div', { className: "bg-white rounded-lg max-w-md w-full p-6" },
+                        React.createElement('h3', { className: "text-lg font-semibold mb-4 flex items-center" },
+                            React.createElement(Shield, { className: "h-5 w-5 mr-2 text-blue-600" }),
+                            "Admin Login"
+                        ),
+                        React.createElement('div', { className: "mb-4" },
+                            React.createElement('label', { className: "block text-sm font-medium text-gray-700 mb-2" },
+                                "Admin Email Address"
+                            ),
+                            React.createElement('input', {
+                                type: "email",
+                                value: adminLoginEmail,
+                                onChange: (e) => setAdminLoginEmail(e.target.value),
+                                placeholder: "Enter your admin email",
+                                className: "w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent",
+                                onKeyPress: (e) => e.key === 'Enter' && handleAdminLogin()
+                            })
+                        ),
+                        React.createElement('div', { className: "flex gap-3 mb-4" },
+                            React.createElement('button', {
+                                onClick: handleAdminLogin,
+                                className: "flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors"
+                            }, "Login"),
+                            React.createElement('button', {
+                                onClick: () => {
+                                    setShowAdminLogin(false);
+                                    setAdminLoginEmail('');
+                                },
+                                className: "flex-1 px-4 py-2 bg-gray-300 text-gray-700 rounded-lg font-medium hover:bg-gray-400 transition-colors"
+                            }, "Cancel")
+                        ),
+                        React.createElement('div', { className: "p-3 bg-blue-50 rounded-lg" },
+                            React.createElement('p', { className: "text-xs text-blue-700" },
+                                React.createElement('strong', null, "Demo Admin Emails:"),
+                                React.createElement('br'),
+                                "admin@example.com",
+                                React.createElement('br'),
+                                "arishpardiwalla@gmail.com"
+                            )
+                        )
+                    )
+                ),
+
+                // Event Detail Modal
+                selectedEvent && React.createElement('div', { 
+                    className: "fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4",
+                    onClick: (e) => {
+                        if (e.target === e.currentTarget) {
+                            setSelectedEvent(null);
+                        }
+                    }
+                },
+                    React.createElement('div', { className: "bg-white rounded-lg max-w-md w-full" },
+                        React.createElement('div', { className: "p-6 border-b border-gray-200" },
+                            React.createElement('div', { className: "flex justify-between items-start" },
+                                React.createElement('h3', { className: "text-xl font-bold text-gray-900" }, selectedEvent.eventName),
+                                React.createElement('button', {
+                                    onClick: () => setSelectedEvent(null),
+                                    className: "text-gray-400 hover:text-gray-600 transition-colors"
+                                },
+                                    React.createElement(X, { className: "h-5 w-5" })
+                                )
+                            )
+                        ),
+                        React.createElement('div', { className: "p-6" },
+                            React.createElement('div', { className: "space-y-4" },
+                                React.createElement('div', { className: "flex items-start space-x-3" },
+                                    React.createElement(MapPin, { className: "h-5 w-5 text-gray-400 mt-0.5" }),
+                                    React.createElement('div', null,
+                                        React.createElement('p', { className: "text-sm font-medium text-gray-900" }, "Location"),
+                                        React.createElement('p', { className: "text-sm text-gray-600" }, selectedEvent.location)
+                                    )
+                                ),
+                                React.createElement('div', { className: "flex items-start space-x-3" },
+                                    React.createElement(Calendar, { className: "h-5 w-5 text-gray-400 mt-0.5" }),
+                                    React.createElement('div', null,
+                                        React.createElement('p', { className: "text-sm font-medium text-gray-900" }, "Date & Time"),
+                                        React.createElement('p', { className: "text-sm text-gray-600" },
+                                            formatDate(selectedEvent.date) + ' at ' + formatTime(selectedEvent.time)
+                                        )
+                                    )
+                                ),
+                                React.createElement('div', { className: "flex items-start space-x-3" },
+                                    React.createElement(User, { className: "h-5 w-5 text-gray-400 mt-0.5" }),
+                                    React.createElement('div', null,
+                                        React.createElement('p', { className: "text-sm font-medium text-gray-900" }, "Organizer"),
+                                        React.createElement('p', { className: "text-sm text-gray-600" }, selectedEvent.organizerName)
+                                    )
+                                )
+                            ),
+                            React.createElement('div', { className: "mt-6 pt-4 border-t border-gray-200" },
+                                React.createElement('button', {
+                                    onClick: () => setSelectedEvent(null),
+                                    className: "w-full bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors font-medium"
+                                }, "Close")
+                            )
+                        )
+                    )
+                )
+            );
+        }
+
+        // Render the app
+        const container = document.getElementById('root');
+        const root = createRoot(container);
+        root.render(React.createElement(DallasEventsApp));
     </script>
 </body>
 </html>

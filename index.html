@@ -110,32 +110,42 @@
             const [adminLoginEmail, setAdminLoginEmail] = useState('');
             const [selectedEvent, setSelectedEvent] = useState(null);
 
-            // Events state
-            const [pendingEvents, setPendingEvents] = useState([]);
-            const [approvedEvents, setApprovedEvents] = useState([
-                {
-                    id: 1,
-                    eventName: "Salsa Night at Deep Ellum",
-                    location: "Deep Ellum Dance Studio",
-                    date: new Date().toISOString().split('T')[0],
-                    time: "20:00",
-                    frequency: "weekly",
-                    organizerName: "Maria Rodriguez",
-                    organizerEmail: "maria@deepellumdance.com",
-                    socialMediaAccount: "@DeepEllumSalsa"
-                },
-                {
-                    id: 2,
-                    eventName: "Hip-Hop Workshop",
-                    location: "Dallas Youth Center",
-                    date: new Date(Date.now() + 86400000 * 2).toISOString().split('T')[0],
-                    time: "15:00",
-                    frequency: "one-time",
-                    organizerName: "DJ Marcus",
-                    organizerEmail: "marcus@dallashiphop.com",
-                    socialMediaAccount: "@DallasBBreakers"
+            // Events state - Load from localStorage or use samples
+            const [pendingEvents, setPendingEvents] = useState(() => {
+                const saved = localStorage.getItem('pendingEvents');
+                return saved ? JSON.parse(saved) : [];
+            });
+            const [approvedEvents, setApprovedEvents] = useState(() => {
+                const saved = localStorage.getItem('approvedEvents');
+                if (saved) {
+                    return JSON.parse(saved);
                 }
-            ]);
+                // Only add sample events if none exist
+                return [
+                    {
+                        id: 1,
+                        eventName: "Salsa Night at Deep Ellum",
+                        location: "Deep Ellum Dance Studio",
+                        date: new Date().toISOString().split('T')[0],
+                        time: "20:00",
+                        frequency: "weekly",
+                        organizerName: "Maria Rodriguez",
+                        organizerEmail: "maria@deepellumdance.com",
+                        socialMediaAccount: "@DeepEllumSalsa"
+                    },
+                    {
+                        id: 2,
+                        eventName: "Hip-Hop Workshop",
+                        location: "Dallas Youth Center",
+                        date: new Date(Date.now() + 86400000 * 2).toISOString().split('T')[0],
+                        time: "15:00",
+                        frequency: "one-time",
+                        organizerName: "DJ Marcus",
+                        organizerEmail: "marcus@dallashiphop.com",
+                        socialMediaAccount: "@DallasBBreakers"
+                    }
+                ];
+            });
 
             // Calendar state
             const [currentMonth, setCurrentMonth] = useState(new Date());

@@ -9,6 +9,9 @@
     <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
     <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
     
+    <!-- Supabase Client -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     
@@ -23,8 +26,13 @@
     <div id="root"></div>
 
     <script>
-        const { useState } = React;
+        const { useState, useEffect } = React;
         const { createRoot } = ReactDOM;
+
+        // Initialize Supabase client
+        const SUPABASE_URL = 'https://uyrhpyihtfvwzdpkxlko.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InV5cmhweWlodGZ2d3pkcGt4bGtvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTI3OTU1NDQsImV4cCI6MjA2ODM3MTU0NH0.M4P9ak883g7y8AesLHDRmUpLg5hy_KRt_W9h1yA-m28';
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
         // Simple SVG Icons
         const Calendar = ({ className }) => React.createElement('svg', { 
@@ -106,45 +114,71 @@
             // App state
             const [currentView, setCurrentView] = useState('public'); // 'public' or 'admin'
             const [isAdminAuthenticated, setIsAdminAuthenticated] = useState(false);
+            const [currentAdminUser, setCurrentAdminUser] = useState(null);
             const [showAdminLogin, setShowAdminLogin] = useState(false);
             const [adminLoginEmail, setAdminLoginEmail] = useState('');
             const [selectedEvent, setSelectedEvent] = useState(null);
 
-            // Events state
+            // Database state
             const [pendingEvents, setPendingEvents] = useState([]);
-            const [approvedEvents, setApprovedEvents] = useState([
-                {
-                    id: 1,
-                    eventName: "Salsa Night at Deep Ellum",
-                    location: "Deep Ellum Dance Studio",
-                    date: new Date().toISOString().split('T')[0],
-                    time: "20:00",
-                    frequency: "weekly",
-                    organizerName: "Maria Rodriguez",
-                    organizerEmail: "maria@deepellumdance.com",
-                    socialMediaAccount: "@DeepEllumSalsa"
-                },
-                {
-                    id: 2,
-                    eventName: "Hip-Hop Workshop",
-                    location: "Dallas Youth Center",
-                    date: new Date(Date.now() + 86400000 * 2).toISOString().split('T')[0],
-                    time: "15:00",
-                    frequency: "one-time",
-                    organizerName: "DJ Marcus",
-                    organizerEmail: "marcus@dallashiphop.com",
-                    socialMediaAccount: "@DallasBBreakers"
-                }
-            ]);
+            const [approvedEvents, setApprovedEvents] = useState([]);
+            const [loading, setLoading] = useState(false);
+            const [error, setError] = useState(null);
 
             // Calendar state
             const [currentMonth, setCurrentMonth] = useState(new Date());
 
-            // Admin users (simplified)
-            const adminUsers = [
-                { email: 'admin@example.com', name: 'Primary Admin' },
-                { email: 'arishpardiwalla@gmail.com', name: 'Arish Pardiwalla' }
-            ];
+            // Database functions
+            const fetchPendingEvents = async () => {
+                try {
+                    const { data, error } = await supabase
+                        .from('events')
+                        .select('*')
+                        .eq('status', 'pending')
+                        .order('created_at', { ascending: false });
+                    
+                    if (error) throw error;
+                    setPendingEvents(data || []);
+                } catch (err) {
+                    console.error('Error fetching pending events:', err);
+                    setError('Failed to load pending events');
+                }
+            };
+
+            const fetchApprovedEvents = async () => {
+                try {
+                    const { data, error } = await supabase
+                        .from('events')
+                        .select('*')
+                        .eq('status', 'approved')
+                        .order('event_date', { ascending: true });
+                    
+                    if (error) throw error;
+                    setApprovedEvents(data || []);
+                } catch (err) {
+                    console.error('Error fetching approved events:', err);
+                    setError('Failed to load approved events');
+                }
+            };
+
+            const refreshData = async () => {
+                setLoading(true);
+                setError(null);
+                await Promise.all([fetchPendingEvents(), fetchApprovedEvents()]);
+                setLoading(false);
+            };
+
+            // Load data on component mount
+            useEffect(() => {
+                refreshData();
+            }, []);
+
+            // Load data when switching to admin view
+            useEffect(() => {
+                if (currentView === 'admin' && isAdminAuthenticated) {
+                    refreshData();
+                }
+            }, [currentView, isAdminAuthenticated]);
 
             // Helper functions
             const handleInputChange = (e) => {
@@ -152,36 +186,54 @@
                 setFormData(prev => ({ ...prev, [name]: value }));
             };
 
-            const handleSubmit = () => {
+            const handleSubmit = async () => {
                 if (!formData.eventName || !formData.location || !formData.date || !formData.time || !formData.organizerName || !formData.organizerEmail) {
                     alert('Please fill in all required fields');
                     return;
                 }
 
-                const newEvent = {
-                    ...formData,
-                    id: Date.now(),
-                    submittedAt: new Date().toISOString()
-                };
-                
-                setPendingEvents(prev => {
-                    const updated = [...prev, newEvent];
-                    console.log('Updated pending events:', updated); // Debug log
-                    return updated;
-                });
-                
-                setFormData({
-                    eventName: '',
-                    location: '',
-                    date: '',
-                    time: '',
-                    frequency: 'one-time',
-                    organizerName: '',
-                    organizerEmail: '',
-                    socialMediaAccount: ''
-                });
-                
-                alert(`Event "${newEvent.eventName}" submitted for approval! An admin will review it soon.`);
+                setLoading(true);
+                try {
+                    const { data, error } = await supabase
+                        .from('events')
+                        .insert([{
+                            event_name: formData.eventName,
+                            location: formData.location,
+                            event_date: formData.date,
+                            event_time: formData.time,
+                            frequency: formData.frequency,
+                            organizer_name: formData.organizerName,
+                            organizer_email: formData.organizerEmail,
+                            social_media_account: formData.socialMediaAccount || null,
+                            status: 'pending'
+                        }])
+                        .select();
+
+                    if (error) throw error;
+
+                    setFormData({
+                        eventName: '',
+                        location: '',
+                        date: '',
+                        time: '',
+                        frequency: 'one-time',
+                        organizerName: '',
+                        organizerEmail: '',
+                        socialMediaAccount: ''
+                    });
+                    
+                    alert(`Event "${formData.eventName}" submitted for approval! An admin will review it soon.`);
+                    
+                    // Refresh pending events if admin is logged in
+                    if (isAdminAuthenticated) {
+                        await fetchPendingEvents();
+                    }
+                } catch (err) {
+                    console.error('Error submitting event:', err);
+                    alert('Failed to submit event. Please try again.');
+                } finally {
+                    setLoading(false);
+                }
             };
 
             const formatDate = (dateString) => {
@@ -201,45 +253,119 @@
                 });
             };
 
-            const handleAdminLogin = () => {
-                const admin = adminUsers.find(u => u.email.toLowerCase() === adminLoginEmail.toLowerCase());
-                if (admin) {
-                    setIsAdminAuthenticated(true);
-                    setShowAdminLogin(false);
-                    setAdminLoginEmail('');
-                    alert(`Welcome, ${admin.name}!`);
-                } else {
-                    alert('Email not found in admin users');
+            const handleAdminLogin = async () => {
+                if (!adminLoginEmail.trim()) {
+                    alert('Please enter your admin email');
+                    return;
+                }
+
+                setLoading(true);
+                try {
+                    const { data, error } = await supabase
+                        .from('admin_users')
+                        .select('*')
+                        .eq('email', adminLoginEmail.toLowerCase())
+                        .single();
+
+                    if (error && error.code !== 'PGRST116') throw error;
+
+                    if (data) {
+                        setIsAdminAuthenticated(true);
+                        setCurrentAdminUser(data);
+                        setShowAdminLogin(false);
+                        setAdminLoginEmail('');
+                        alert(`Welcome, ${data.name}!`);
+                        await refreshData(); // Load fresh data for admin
+                    } else {
+                        alert('Email not found in admin users');
+                    }
+                } catch (err) {
+                    console.error('Error during admin login:', err);
+                    alert('Login failed. Please try again.');
+                } finally {
+                    setLoading(false);
                 }
             };
 
             const handleAdminLogout = () => {
                 setIsAdminAuthenticated(false);
+                setCurrentAdminUser(null);
                 setCurrentView('public');
             };
 
-            const approveEvent = (eventId) => {
-                const event = pendingEvents.find(e => e.id === eventId);
-                if (event) {
-                    setPendingEvents(prev => prev.filter(e => e.id !== eventId));
-                    setApprovedEvents(prev => [...prev, event]);
-                    alert(`Event "${event.eventName}" approved!`);
+            const approveEvent = async (eventId) => {
+                setLoading(true);
+                try {
+                    const { error } = await supabase
+                        .from('events')
+                        .update({ 
+                            status: 'approved',
+                            updated_at: new Date().toISOString()
+                        })
+                        .eq('id', eventId);
+
+                    if (error) throw error;
+
+                    alert('Event approved successfully!');
+                    await refreshData();
+                } catch (err) {
+                    console.error('Error approving event:', err);
+                    alert('Failed to approve event. Please try again.');
+                } finally {
+                    setLoading(false);
                 }
             };
 
-            const rejectEvent = (eventId) => {
+            const rejectEvent = async (eventId) => {
                 const event = pendingEvents.find(e => e.id === eventId);
-                if (event && confirm(`Reject "${event.eventName}"?`)) {
-                    setPendingEvents(prev => prev.filter(e => e.id !== eventId));
-                    alert(`Event "${event.eventName}" rejected`);
+                if (!event) return;
+
+                if (!confirm(`Reject "${event.event_name}"?`)) return;
+
+                setLoading(true);
+                try {
+                    const { error } = await supabase
+                        .from('events')
+                        .update({ 
+                            status: 'rejected',
+                            updated_at: new Date().toISOString()
+                        })
+                        .eq('id', eventId);
+
+                    if (error) throw error;
+
+                    alert('Event rejected');
+                    await refreshData();
+                } catch (err) {
+                    console.error('Error rejecting event:', err);
+                    alert('Failed to reject event. Please try again.');
+                } finally {
+                    setLoading(false);
                 }
             };
 
-            const removeEvent = (eventId) => {
+            const removeEvent = async (eventId) => {
                 const event = approvedEvents.find(e => e.id === eventId);
-                if (event && confirm(`Remove "${event.eventName}" from calendar?`)) {
-                    setApprovedEvents(prev => prev.filter(e => e.id !== eventId));
+                if (!event) return;
+
+                if (!confirm(`Remove "${event.event_name}" from calendar?`)) return;
+
+                setLoading(true);
+                try {
+                    const { error } = await supabase
+                        .from('events')
+                        .delete()
+                        .eq('id', eventId);
+
+                    if (error) throw error;
+
                     alert('Event removed from calendar');
+                    await refreshData();
+                } catch (err) {
+                    console.error('Error removing event:', err);
+                    alert('Failed to remove event. Please try again.');
+                } finally {
+                    setLoading(false);
                 }
             };
 
@@ -264,7 +390,7 @@
             const getEventsForDate = (date) => {
                 if (!date) return [];
                 const dateString = date.toISOString().split('T')[0];
-                return approvedEvents.filter(event => event.date === dateString);
+                return approvedEvents.filter(event => event.event_date === dateString);
             };
 
             const isToday = (date) => {
@@ -287,7 +413,7 @@
                                 React.createElement('h1', { className: "text-2xl font-bold text-gray-900" }, "Dallas Dance Events")
                             ),
                             React.createElement('div', { className: "flex items-center space-x-4" },
-                                currentView === 'public' && React.createElement('nav', { className: "hidden md:flex space-x-6" },
+                                currentView === 'public' &&                                 React.createElement('nav', { className: "hidden md:flex space-x-6" },
                                     React.createElement('button', { 
                                         onClick: () => scrollToSection('calendar'),
                                         className: "text-gray-600 hover:text-blue-600 transition-colors"
@@ -295,7 +421,17 @@
                                     React.createElement('button', { 
                                         onClick: () => scrollToSection('submit'),
                                         className: "text-gray-600 hover:text-blue-600 transition-colors"
-                                    }, "Submit Event")
+                                    }, "Submit Event"),
+                                    React.createElement('button', { 
+                                        onClick: refreshData,
+                                        disabled: loading,
+                                        className: "text-gray-600 hover:text-blue-600 transition-colors flex items-center space-x-1 " + (loading ? 'opacity-50' : '')
+                                    },
+                                        React.createElement('svg', { className: "h-4 w-4", fill: "none", stroke: "currentColor", viewBox: "0 0 24 24" },
+                                            React.createElement('path', { strokeLinecap: "round", strokeLinejoin: "round", strokeWidth: 2, d: "M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" })
+                                        ),
+                                        React.createElement('span', null, loading ? "Refreshing..." : "Refresh")
+                                    )
                                 ),
                                 
                                 isAdminAuthenticated ? React.createElement('div', { className: "flex items-center space-x-3" },
@@ -395,8 +531,8 @@
                                                             onClick: () => setSelectedEvent(event),
                                                             className: "bg-blue-100 text-blue-900 text-xs px-2 py-1 rounded cursor-pointer hover:bg-blue-200 transition-all border border-blue-200 transform hover:scale-105"
                                                         },
-                                                            React.createElement('div', { className: "font-medium truncate" }, event.eventName),
-                                                            React.createElement('div', { className: "text-blue-700" }, formatTime(event.time))
+                                                            React.createElement('div', { className: "font-medium truncate" }, event.event_name),
+                                                            React.createElement('div', { className: "text-blue-700" }, formatTime(event.event_time))
                                                         )
                                                     )
                                                 )
